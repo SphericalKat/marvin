@@ -3,6 +3,10 @@ name = "marvin"
 version = "0.1.0"
 authors = ["SphericalKat <amolele@gmail.com>"]
 edition = "2018"
+description = "A group management bot for Telegram"
+repository = "https://github.com/SphericalKat/marvin"
+license = "MIT"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
