@@ -52,8 +52,10 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
                 .map(|_| ())?,
         },
         Err(_) => {
-            save_user_handler(&cx, &*POOL).await?;
-            save_chat_handler(&cx, &*POOL).await?;
+            tokio::try_join!(
+                save_user_handler(&cx, &*POOL),
+                save_chat_handler(&cx, &*POOL)
+            )?;
         }
     }
 
