@@ -5,9 +5,10 @@ use refinery::config::Config;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use teloxide::{prelude::*, utils::command::BotCommand};
 
+pub mod entities;
+pub mod handlers;
 pub mod migrations;
 pub mod repo;
-pub mod handlers;
 
 #[derive(BotCommand)]
 #[command(rename = "lowercase", description = "List of supported commands:")]

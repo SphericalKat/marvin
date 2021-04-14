@@ -1,5 +1,7 @@
 use sqlx::{Pool, Postgres};
 
+use crate::entities::User;
+
 pub async fn insert_user(
     user_id: i64,
     user_name: Option<String>,
@@ -18,4 +20,21 @@ pub async fn insert_user(
     .execute(pool)
     .await?;
     Ok(())
+}
+
+pub async fn get_user(
+    user_id: Option<i64>,
+    user_name: Option<String>,
+    pool: &Pool<Postgres>,
+) -> anyhow::Result<User> {
+    let user = sqlx::query_as!(
+        User,
+        "SELECT * FROM users WHERE user_id = $1 OR user_name = $2",
+        user_id,
+        user_name
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(user)
 }

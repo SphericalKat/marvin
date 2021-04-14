@@ -1,3 +1,4 @@
+use crate::entities::Chat;
 use sqlx::{Pool, Postgres};
 
 pub async fn insert_chat(
@@ -18,4 +19,12 @@ pub async fn insert_chat(
     .execute(pool)
     .await?;
     Ok(())
+}
+
+pub async fn get_chat(chat_id: i64, pool: &Pool<Postgres>) -> anyhow::Result<Chat> {
+    let chat = sqlx::query_as!(Chat, "SELECT * FROM chats WHERE chat_id = $1", chat_id)
+        .fetch_one(pool)
+        .await?;
+
+    Ok(chat)
 }
