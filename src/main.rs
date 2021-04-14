@@ -1,5 +1,8 @@
 use dotenv::dotenv;
 use teloxide::{prelude::*, utils::command::BotCommand};
+
+pub mod migrations;
+
 #[derive(BotCommand)]
 #[command(rename = "lowercase", description = "List of supported commands:")]
 enum Command {
@@ -11,6 +14,7 @@ type Cx = UpdateWithCx<AutoSend<Bot>, Message>;
 
 #[tokio::main]
 async fn main() {
+    migrations::migrate();
     run().await;
 }
 
@@ -32,7 +36,7 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
                 .send()
                 .await
                 .map(|_| ())?,
-        }
+        },
         Err(_) => {
             // non-command update, perform data collection here
         }
