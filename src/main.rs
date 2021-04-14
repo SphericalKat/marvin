@@ -1,9 +1,10 @@
 use dotenv::dotenv;
-use handlers::{save_chat_handler, save_user_handler};
+use handlers::{misc, save_chat_handler, save_user_handler};
 use lazy_static::lazy_static;
+use std::sync::Arc;
 use refinery::config::Config;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
-use teloxide::{prelude::*, utils::command::BotCommand};
+use teloxide::{adaptors::DefaultParseMode, prelude::*, types::ParseMode, utils::command::BotCommand};
 
 pub mod entities;
 pub mod handlers;
@@ -15,9 +16,11 @@ pub mod repo;
 enum Command {
     #[command(description = "display this text.")]
     Help,
+    #[command(description = "Get the current chat's ID")]
+    Id(String),
 }
 
-type Cx = UpdateWithCx<AutoSend<Bot>, Message>;
+type Cx = UpdateWithCx<Arc<DefaultParseMode<AutoSend<Bot>>>, Message>;
 
 lazy_static! {
     static ref DATABASE_URL: String = std::env::var("DATABASE_URL").expect("Expected database url");
@@ -33,7 +36,11 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn handler(cx: Cx) -> anyhow::Result<()> {
-    log::debug!("Received an update!");
+    // log::debug!("Received an update!");
+    tokio::try_join!(
+        save_user_handler(&cx, &*POOL),
+        save_chat_handler(&cx, &*POOL)
+    )?;
 
     // check if update contains any text
     let text = cx.update.text();
@@ -41,22 +48,20 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
         return Ok(());
     }
 
-    let cmd = Command::parse(text.unwrap(), "marvin");
+    let cmd = Command::parse(text.unwrap(), "rust_tgbot");
 
     match cmd {
         Ok(c) => match c {
             Command::Help => cx
-                .answer(Command::descriptions())
+                .reply_to(Command::descriptions())
                 .send()
                 .await
                 .map(|_| ())?,
+            Command::Id(username) => {
+                misc::handle_id(cx, username, &*POOL).await?;
+            }
         },
-        Err(_) => {
-            tokio::try_join!(
-                save_user_handler(&cx, &*POOL),
-                save_chat_handler(&cx, &*POOL)
-            )?;
-        }
+        Err(_) => {}
     }
 
     Ok(())
@@ -76,8 +81,9 @@ async fn run() -> anyhow::Result<()> {
 
     // start bot
     log::info!("Starting marvin...");
-    let bot = Bot::from_env().auto_send();
-    teloxide::repl(bot, handler).await;
+    let bot = Arc::new(Bot::from_env().auto_send().parse_mode(ParseMode::Html));
+    
+    teloxide::repl(bot.clone(), handler).await;
 
     Ok(())
 }
