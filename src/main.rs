@@ -1,5 +1,6 @@
 use dotenv::dotenv;
 use teloxide::{prelude::*, utils::command::BotCommand};
+use refinery::config::Config;
 
 pub mod migrations;
 
@@ -14,7 +15,6 @@ type Cx = UpdateWithCx<AutoSend<Bot>, Message>;
 
 #[tokio::main]
 async fn main() {
-    migrations::migrate();
     run().await;
 }
 
@@ -48,8 +48,15 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
 async fn run() {
     // load env config
     dotenv().ok();
-
     teloxide::enable_logging!();
+
+    // run migrations
+    log::info!("Running database migrations...");
+    let mut db_conf = Config::from_env_var("DATABASE_URL").expect("DATABASE_URL is required");
+    
+    let bs = migrations::runner().run_async(&mut db_conf).await.unwrap();
+    log::debug!("Ran migrations: {:?}", bs.applied_migrations());
+
     log::info!("Starting marvin...");
 
     let bot = Bot::from_env().auto_send();

@@ -1,7 +1,3 @@
-pub mod chats;
-mod users;
+use refinery::include_migration_mods;
 
-pub fn migrate() {
-    users::migrate();
-    chats::migrate();
-}
+include_migration_mods!();
