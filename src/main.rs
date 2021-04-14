@@ -1,8 +1,13 @@
 use dotenv::dotenv;
-use teloxide::{prelude::*, utils::command::BotCommand};
+use handlers::{save_chat_handler, save_user_handler};
+use lazy_static::lazy_static;
 use refinery::config::Config;
+use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use teloxide::{prelude::*, utils::command::BotCommand};
 
 pub mod migrations;
+pub mod repo;
+pub mod handlers;
 
 #[derive(BotCommand)]
 #[command(rename = "lowercase", description = "List of supported commands:")]
@@ -13,9 +18,17 @@ enum Command {
 
 type Cx = UpdateWithCx<AutoSend<Bot>, Message>;
 
+lazy_static! {
+    static ref DATABASE_URL: String = std::env::var("DATABASE_URL").expect("Expected database url");
+    static ref POOL: Pool<Postgres> = PgPoolOptions::new()
+        .max_connections(10)
+        .connect_lazy(&DATABASE_URL)
+        .unwrap();
+}
+
 #[tokio::main]
-async fn main() {
-    run().await;
+async fn main() -> anyhow::Result<()> {
+    run().await
 }
 
 async fn handler(cx: Cx) -> anyhow::Result<()> {
@@ -38,27 +51,30 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
                 .map(|_| ())?,
         },
         Err(_) => {
-            // non-command update, perform data collection here
+            save_user_handler(&cx, &*POOL).await?;
+            save_chat_handler(&cx, &*POOL).await?;
         }
     }
 
     Ok(())
 }
 
-async fn run() {
+async fn run() -> anyhow::Result<()> {
     // load env config
-    dotenv().ok();
+    dotenv()?;
     teloxide::enable_logging!();
 
     // run migrations
     log::info!("Running database migrations...");
-    let mut db_conf = Config::from_env_var("DATABASE_URL").expect("DATABASE_URL is required");
-    
-    let bs = migrations::runner().run_async(&mut db_conf).await.unwrap();
+    let mut db_conf = Config::from_env_var("DATABASE_URL")?;
+
+    let bs = migrations::runner().run_async(&mut db_conf).await?;
     log::debug!("Ran migrations: {:?}", bs.applied_migrations());
 
+    // start bot
     log::info!("Starting marvin...");
-
     let bot = Bot::from_env().auto_send();
     teloxide::repl(bot, handler).await;
+
+    Ok(())
 }

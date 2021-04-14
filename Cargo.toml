@@ -19,6 +19,8 @@ dotenv = "0.15.0"
 anyhow = "1.0.40"
 barrel = { version = "0.6.5", features = ["pg"] }
 refinery = { version = "0.5.0", features = ["tokio-postgres", "tokio"] }
+sqlx = { version = "0.5", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono"] }
+lazy_static = "1.4.0"
 
 [build-dependencies]
 cargo-emit = "0.1.1"

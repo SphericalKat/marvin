@@ -5,7 +5,7 @@ pub fn migration() -> String {
 
     // create users table
     m.create_table_if_not_exists("users", |t| {
-        t.add_column("user_id", types::text().primary(true));
+        t.add_column("user_id", types::integer().primary(true));
         t.add_column("user_name", types::text().indexed(true).nullable(true));
     });
 
