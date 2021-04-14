@@ -8,7 +8,8 @@ pub async fn save_user_handler(
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {
     if let Some(user) = cx.update.from() {
-        users::insert_user(user.id, user.username.clone(), pool).await?;
+        let username = user.username.as_ref().map(|s| s.to_lowercase());
+        users::insert_user(user.id, username, pool).await?;
     }
 
     Ok(())
@@ -22,7 +23,7 @@ pub async fn save_chat_handler(
         let chat = &cx.update.chat;
 
         match &chat.kind {
-            ChatKind::Public(pu) => {chats::insert_chat(chat.id, pu.title.clone(), pool).await?}
+            ChatKind::Public(pu) => chats::insert_chat(chat.id, pu.title.clone(), pool).await?,
             ChatKind::Private(_) => {}
         }
     }
