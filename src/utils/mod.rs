@@ -68,7 +68,6 @@ pub async fn extract_user_and_text(
                     };
                     text = Some(msg_text[ent.unwrap().offset + ent.unwrap().length..].to_owned());
                 }
-
             } else if args.len() >= 1 && args[0].chars().nth(0) == Some('@') {
                 let user_name = args[0];
                 let res =
@@ -81,7 +80,11 @@ pub async fn extract_user_and_text(
                         text = Some(split[2].to_owned());
                     }
                 } else {
-                    cx.reply_to("Could not find a user by this name; are you sure I've seen them before?").await.ok();
+                    cx.reply_to(
+                        "Could not find a user by this name; are you sure I've seen them before?",
+                    )
+                    .await
+                    .ok();
                     return (None, None);
                 }
             } else if args.len() >= 1 {

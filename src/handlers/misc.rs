@@ -1,41 +1,52 @@
 use sqlx::{Pool, Postgres};
-use teloxide::utils::html;
+use teloxide::types::{ChatKind, ForwardedFrom};
+use teloxide::{prelude::Requester, utils::html};
 
-use crate::repo::users;
+use crate::utils;
 use crate::Cx;
 
-pub async fn handle_id(cx: Cx, username: String, pool: &Pool<Postgres>) -> anyhow::Result<()> {
-    if username == "" {
-        let id = cx.update.chat_id();
-        cx.reply_to(format!(
-            "The current chat's ID is: {}",
-            html::code_inline(&id.to_string())
-        ))
-        .await?;
-        return Ok(());
-    }
-
-    if username.chars().nth(0).unwrap_or_default() == '@' {
-        let stripped_username = username.replace("@", "");
-        let user = users::get_user(None, Some(stripped_username), pool).await;
-
-        match user {
-            Ok(u) => {
+pub async fn handle_id(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
+    let (user_id, _) = utils::extract_user_and_text(&cx, pool).await;
+    if let Some(user_id) = user_id {
+        if let Some(prev_msg) = cx.update.reply_to_message() {
+            let user1 = prev_msg.from().unwrap();
+            if let Some(user2) = prev_msg.forward_from() {
+                if let ForwardedFrom::User(u) = user2 {
+                    cx.reply_to(
+                        format!(
+                            "The original sender, {} has an ID of {}.\nThe forwarder, {}, has an ID of {}.",
+                            html::escape(&u.first_name),
+                            html::code_inline(&u.id.to_string()),
+                            html::escape(&user1.first_name),
+                            html::code_inline(&user1.id.to_string()),
+                        ),
+                    ).await?;
+                } else if let ForwardedFrom::SenderName(_) = user2 {
+                    cx.reply_to(format!(
+                        "{}'s ID is {}",
+                        html::escape(&user1.first_name),
+                        html::code_inline(&user1.id.to_string())
+                    ))
+                    .await?;
+                }
+            }
+        } else {
+            if let ChatKind::Private(user) = cx.requester.get_chat(user_id).await?.kind {
                 cx.reply_to(format!(
-                    "{}'s ID is {}.",
-                    u.full_name,
-                    html::code_inline(&u.user_id.to_string())
+                    "{}'s ID is {}",
+                    html::escape(&user.first_name.unwrap_or("".to_owned())),
+                    html::code_inline(&user_id.to_string())
                 ))
                 .await?;
             }
-            Err(_) => {
-                cx.reply_to(
-                    "Could not find a user by this name; are you sure I've seen them before?",
-                )
-                .await?;
-            }
         }
+    } else {
+        let chat = &cx.update.chat;
+        cx.reply_to(format!(
+            "This chat's ID is {}",
+            html::code_inline(&chat.id.to_string())
+        ))
+        .await?;
     }
-
     Ok(())
 }
