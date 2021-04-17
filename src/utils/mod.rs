@@ -156,14 +156,18 @@ impl FromStr for UnitOfTime {
         let parsed_num;
         let u;
 
-        if split_s.len() == 1 && split_s[0].len() == 2 {
-            let time = split_s[0].chars().nth(0).unwrap().to_string();
-            let unit = split_s[0].chars().nth(1).unwrap().to_string();
+        if split_s.len() == 1
+            && split_s[0].ends_with(&['h', 'm', 's', 'd'][..])
+            && split_s[0].len() >= 2
+        {
+            let mut time = split_s[0].to_owned();
+            let unit = time.pop().unwrap().to_string();
+            time = time.to_string();
 
             parsed_num = match time.parse::<u64>() {
                 Ok(n) => n,
                 Err(_) => {
-                    return Err("Allowed units: h, m, s");
+                    return Err("Allowed units: h, m, s, d");
                 }
             };
             u = unit;
@@ -171,12 +175,12 @@ impl FromStr for UnitOfTime {
             parsed_num = match split_s[0].parse::<u64>() {
                 Ok(n) => n,
                 Err(_) => {
-                    return Err("Allowed units: h, m, s");
+                    return Err("Allowed units: h, m, s, d");
                 }
             };
             u = split_s[1].to_owned()
         } else {
-            return Err("Allowed units: h, m, s");
+            return Err("Allowed units: h, m, s, d");
         }
 
         match &u as &str {
@@ -184,7 +188,7 @@ impl FromStr for UnitOfTime {
             "m" | "minutes" => Ok(UnitOfTime::Minutes(parsed_num)),
             "s" | "seconds" => Ok(UnitOfTime::Seconds(parsed_num)),
             "d" | "days" => Ok(UnitOfTime::Days(parsed_num)),
-            _ => Err("Allowed units: h, m, s"),
+            _ => Err("Allowed units: h, m, s, d"),
         }
     }
 }
