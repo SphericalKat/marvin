@@ -152,18 +152,22 @@ pub enum UnitOfTime {
 impl FromStr for UnitOfTime {
     type Err = &'static str;
     fn from_str(s: &str) -> Result<Self, <Self as FromStr>::Err> {
+        // attempt to split into two
         let split_s: Vec<_> = s.splitn(2, char::is_whitespace).collect();
-        let parsed_num;
-        let u;
+        let parsed_num; // parsed number
+        let u; // unit of time
 
+        // user specified as a single slug, eg: '1m'
         if split_s.len() == 1
-            && split_s[0].ends_with(&['h', 'm', 's', 'd'][..])
+            && split_s[0].ends_with(&['h', 'm', 's', 'd'][..]) // check if suffixes are valid
             && split_s[0].len() >= 2
+        // check if it's not _only_ a suffix
         {
-            let mut time = split_s[0].to_owned();
-            let unit = time.pop().unwrap().to_string();
-            time = time.to_string();
+            let mut time = split_s[0].to_owned(); // apparently only Strings can be popped
+            let unit = time.pop().unwrap().to_string(); // pop suffix from string
+            time = time.to_string(); // remaining part is time
 
+            // attempt to parse time string
             parsed_num = match time.parse::<u64>() {
                 Ok(n) => n,
                 Err(_) => {
@@ -171,28 +175,35 @@ impl FromStr for UnitOfTime {
                 }
             };
             u = unit;
+        // user specified with a whitespace, eg: '1 m'
         } else if split_s.len() == 2 {
+            // attempt to parse time string
             parsed_num = match split_s[0].parse::<u64>() {
                 Ok(n) => n,
                 Err(_) => {
                     return Err("Allowed units: h, m, s, d");
                 }
             };
+
+            // second half is the unit
             u = split_s[1].to_owned()
         } else {
+            // user is a dumbass
             return Err("Allowed units: h, m, s, d");
         }
 
+        // attempt to match suffixes to units of time
         match &u as &str {
             "h" | "hours" => Ok(UnitOfTime::Hours(parsed_num)),
             "m" | "minutes" => Ok(UnitOfTime::Minutes(parsed_num)),
             "s" | "seconds" => Ok(UnitOfTime::Seconds(parsed_num)),
             "d" | "days" => Ok(UnitOfTime::Days(parsed_num)),
-            _ => Err("Allowed units: h, m, s, d"),
+            _ => Err("Allowed units: h, m, s, d"), // user is a dumbass
         }
     }
 }
 
+// useful for formatting while sending
 impl Display for UnitOfTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -204,6 +215,7 @@ impl Display for UnitOfTime {
     }
 }
 
+// get time in seconds from unit and number of units
 pub fn extract_time(unit: &UnitOfTime) -> u64 {
     match unit {
         UnitOfTime::Hours(t) => t * 3600,
