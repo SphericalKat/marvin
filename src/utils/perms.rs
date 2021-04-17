@@ -2,7 +2,7 @@ use crate::BOT_TOKEN;
 use anyhow::anyhow;
 use teloxide::{
     prelude::Requester,
-    types::{ChatMember, ChatMemberKind, ChatMemberStatus, User},
+    types::{ChatMember, ChatMemberKind, ChatMemberStatus},
 };
 
 use crate::Cx;
@@ -27,7 +27,7 @@ async fn is_bot_admin(cx: &Cx) -> anyhow::Result<()> {
 pub async fn require_bot_admin(cx: &Cx) -> anyhow::Result<()> {
     return match is_bot_admin(cx).await {
         Ok(_) => Ok(()),
-        Err(e) => {
+        Err(_) => {
             cx.reply_to("The bot must be an admin for this to work!")
                 .await?;
             return Err(anyhow!("Bot is not admin"));
@@ -35,22 +35,22 @@ pub async fn require_bot_admin(cx: &Cx) -> anyhow::Result<()> {
     };
 }
 
-async fn is_user_admin(cx: &Cx, user_id: i64) -> anyhow::Result<()> {
-    if cx.update.chat.is_private() {
-        return Err(anyhow!("User is not admin"));
-    }
+// async fn is_user_admin(cx: &Cx, user_id: i64) -> anyhow::Result<()> {
+//     if cx.update.chat.is_private() {
+//         return Err(anyhow!("User is not admin"));
+//     }
 
-    let chat_member: ChatMember = cx
-        .requester
-        .get_chat_member(cx.update.chat_id(), user_id)
-        .await?;
+//     let chat_member: ChatMember = cx
+//         .requester
+//         .get_chat_member(cx.update.chat_id(), user_id)
+//         .await?;
 
-    match chat_member.status() {
-        ChatMemberStatus::Administrator => Ok(()),
-        ChatMemberStatus::Creator => Ok(()),
-        _ => Err(anyhow!("User is not admin"))
-    }
-}
+//     match chat_member.status() {
+//         ChatMemberStatus::Administrator => Ok(()),
+//         ChatMemberStatus::Creator => Ok(()),
+//         _ => Err(anyhow!("User is not admin"))
+//     }
+// }
 
 pub async fn require_restrict_chat_members(cx: &Cx) -> anyhow::Result<()> {
     let user = &cx.update.from();

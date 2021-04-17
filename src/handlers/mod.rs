@@ -1,5 +1,5 @@
-pub mod misc;
 pub mod banning;
+pub mod misc;
 
 use sqlx::{Pool, Postgres};
 use teloxide::types::ChatKind;

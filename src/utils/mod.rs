@@ -1,5 +1,7 @@
 pub mod perms;
 
+use std::{fmt::Display, str::FromStr};
+
 use sqlx::{Pool, Postgres};
 use teloxide::{
     prelude::Requester,
@@ -138,4 +140,71 @@ pub async fn extract_user_and_text(
 
     // nothing found, bail
     (None, None)
+}
+
+pub enum UnitOfTime {
+    Seconds(u64),
+    Minutes(u64),
+    Hours(u64),
+    Days(u64),
+}
+
+impl FromStr for UnitOfTime {
+    type Err = &'static str;
+    fn from_str(s: &str) -> Result<Self, <Self as FromStr>::Err> {
+        let split_s: Vec<_> = s.splitn(2, char::is_whitespace).collect();
+        let parsed_num;
+        let u;
+
+        if split_s.len() == 1 && split_s[0].len() == 2 {
+            let time = split_s[0].chars().nth(0).unwrap().to_string();
+            let unit = split_s[0].chars().nth(1).unwrap().to_string();
+
+            parsed_num = match time.parse::<u64>() {
+                Ok(n) => n,
+                Err(_) => {
+                    return Err("Allowed units: h, m, s");
+                }
+            };
+            u = unit;
+        } else if split_s.len() == 2 {
+            parsed_num = match split_s[0].parse::<u64>() {
+                Ok(n) => n,
+                Err(_) => {
+                    return Err("Allowed units: h, m, s");
+                }
+            };
+            u = split_s[1].to_owned()
+        } else {
+            return Err("Allowed units: h, m, s");
+        }
+
+        match &u as &str {
+            "h" | "hours" => Ok(UnitOfTime::Hours(parsed_num)),
+            "m" | "minutes" => Ok(UnitOfTime::Minutes(parsed_num)),
+            "s" | "seconds" => Ok(UnitOfTime::Seconds(parsed_num)),
+            "d" | "days" => Ok(UnitOfTime::Days(parsed_num)),
+            _ => Err("Allowed units: h, m, s"),
+        }
+    }
+}
+
+impl Display for UnitOfTime {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UnitOfTime::Seconds(t) => write!(f, "{} second(s)", t),
+            UnitOfTime::Minutes(t) => write!(f, "{} minute(s)", t),
+            UnitOfTime::Hours(t) => write!(f, "{} hour(s)", t),
+            UnitOfTime::Days(t) => write!(f, "{} day(s)", t),
+        }
+    }
+}
+
+pub fn extract_time(unit: &UnitOfTime) -> u64 {
+    match unit {
+        UnitOfTime::Hours(t) => t * 3600,
+        UnitOfTime::Minutes(t) => t * 60,
+        UnitOfTime::Seconds(t) => *t,
+        UnitOfTime::Days(t) => t * 3600 * 24,
+    }
 }
