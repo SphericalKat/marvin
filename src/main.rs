@@ -24,6 +24,8 @@ enum Command {
     Ban,
     #[command(description = "Temporarily ban a user.")]
     Tban,
+    #[command(description = "Kick a user")]
+    Kick,
 }
 
 type Cx = UpdateWithCx<Arc<DefaultParseMode<AutoSend<Bot>>>, Message>;
@@ -75,6 +77,9 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
             }
             Command::Tban => {
                 banning::ban(cx, true, &*POOL).await?;
+            }
+            Command::Kick => {
+                banning::kick(cx, &*POOL).await?;
             }
         },
         Err(_) => {}

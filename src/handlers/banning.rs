@@ -99,15 +99,9 @@ pub async fn kick(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
     perms::require_bot_restrict_chat_members(&cx).await?;
     perms::require_restrict_chat_members(&cx).await?;
 
-    let (user_id, args) = utils::extract_user_and_text(&cx, pool).await;
+    let (user_id, _) = utils::extract_user_and_text(&cx, pool).await;
     if user_id.is_none() {
         cx.reply_to("Try targeting a user next time bud.").await?;
-        return Ok(());
-    }
-
-    if args.is_none() {
-        cx.reply_to("You need to specify a duration in d/h/m/s (days, hours, minutes, seconds)")
-            .await?;
         return Ok(());
     }
 
@@ -128,7 +122,7 @@ pub async fn kick(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
         ChatMemberStatus::Creator => true,
         _ => false,
     } {
-        cx.reply_to("I'm not banning an administrator!").await?;
+        cx.reply_to("I'm not kicking an administrator!").await?;
         return Ok(());
     }
 
@@ -141,7 +135,7 @@ pub async fn kick(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
         .unban_chat_member(cx.update.chat_id(), user_id.unwrap())
         .await?;
 
-    cx.reply_to("Banned!").await?;
+    cx.reply_to("Kicked!").await?;
 
     Ok(())
 }
