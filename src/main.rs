@@ -34,7 +34,7 @@ lazy_static! {
         .max_connections(10)
         .connect_lazy(&DATABASE_URL)
         .unwrap();
-    static ref BOT_TOKEN: i64 = std::env::var("BOT_ID")
+    static ref BOT_ID: i64 = std::env::var("BOT_ID")
         .expect("Expected bot token")
         .parse::<i64>()
         .expect("Expected bot token to be numeric");

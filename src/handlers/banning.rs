@@ -4,7 +4,7 @@ use teloxide::{
     types::{ChatMember, ChatMemberStatus},
 };
 
-use crate::{utils::UnitOfTime, BOT_TOKEN};
+use crate::{utils::UnitOfTime, BOT_ID};
 
 use crate::{
     utils::{self, perms},
@@ -55,7 +55,7 @@ pub async fn ban(cx: Cx, is_tban: bool, pool: &Pool<Postgres>) -> anyhow::Result
         return Ok(());
     }
 
-    if user_id.unwrap() == *BOT_TOKEN {
+    if user_id.unwrap() == *BOT_ID {
         cx.reply_to("No u").await?;
         return Ok(());
     }
