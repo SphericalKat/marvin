@@ -4,6 +4,8 @@ use teloxide::{
     types::{ChatMember, ChatMemberStatus},
 };
 
+use anyhow::anyhow;
+
 use crate::{utils::UnitOfTime, BOT_ID};
 
 use crate::{
@@ -13,6 +15,12 @@ use crate::{
 
 pub async fn ban(cx: Cx, is_tban: bool, pool: &Pool<Postgres>) -> anyhow::Result<()> {
     let chat = &cx.update.chat;
+
+    tokio::try_join!(
+        perms::require_public_group(&cx),
+        perms::require_restrict_chat_members(&cx),
+        perms::require_bot_restrict_chat_members(&cx)
+    )?;
 
     perms::require_public_group(&cx).await?;
     perms::require_bot_restrict_chat_members(&cx).await?;
@@ -87,9 +95,11 @@ pub async fn ban(cx: Cx, is_tban: bool, pool: &Pool<Postgres>) -> anyhow::Result
 pub async fn kick(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
     let chat = &cx.update.chat;
 
-    perms::require_public_group(&cx).await?;
-    perms::require_bot_restrict_chat_members(&cx).await?;
-    perms::require_restrict_chat_members(&cx).await?;
+    tokio::try_join!(
+        perms::require_public_group(&cx),
+        perms::require_restrict_chat_members(&cx),
+        perms::require_bot_restrict_chat_members(&cx)
+    )?;
 
     let (user_id, _) = utils::extract_user_and_text(&cx, pool).await;
     if user_id.is_none() {
@@ -128,6 +138,28 @@ pub async fn kick(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
         .await?;
 
     cx.reply_to("Kicked!").await?;
+
+    Ok(())
+}
+
+pub async fn kickme(cx: Cx) -> anyhow::Result<()> {
+    tokio::try_join!(
+        perms::require_public_group(&cx),
+        perms::require_bot_restrict_chat_members(&cx)
+    )?;
+
+    let user = cx.update.from().ok_or(anyhow!("No user found"))?;
+
+    if perms::is_user_admin(&cx, user.id).await.is_ok() {
+        cx.reply_to("Yeah no, not banning an admin.").await?;
+        return Ok(());
+    }
+
+    cx.reply_to("Sure thing boss.").await?;
+
+    cx.requester
+        .unban_chat_member(cx.chat_id(), user.id)
+        .await?;
 
     Ok(())
 }

@@ -1,5 +1,3 @@
-use std::any;
-
 use crate::BOT_ID;
 use anyhow::anyhow;
 use teloxide::{
@@ -37,8 +35,7 @@ pub async fn require_bot_admin(cx: &Cx) -> anyhow::Result<()> {
     };
 }
 
-#[allow(dead_code)]
-async fn is_user_admin(cx: &Cx, user_id: i64) -> anyhow::Result<()> {
+pub async fn is_user_admin(cx: &Cx, user_id: i64) -> anyhow::Result<()> {
     if cx.update.chat.is_private() {
         return Err(anyhow!("User is not admin"));
     }
