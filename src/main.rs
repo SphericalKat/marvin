@@ -1,6 +1,6 @@
 #![feature(destructuring_assignment)]
 use dotenv::dotenv;
-use handlers::{misc, save_chat_handler, save_user_handler};
+use handlers::{banning, misc, save_chat_handler, save_user_handler};
 use lazy_static::lazy_static;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use std::sync::Arc;
@@ -20,19 +20,22 @@ enum Command {
     Help,
     #[command(description = "Get a user's ID.")]
     Id,
-    #[command(description = "Get the current chat's ID")]
-    Info(String),
+    #[command(description = "Ban a user.")]
+    Ban
 }
 
 type Cx = UpdateWithCx<Arc<DefaultParseMode<AutoSend<Bot>>>, Message>;
 
 lazy_static! {
-    pub static ref DATABASE_URL: String =
-        std::env::var("DATABASE_URL").expect("Expected database url");
+    static ref DATABASE_URL: String = std::env::var("DATABASE_URL").expect("Expected database url");
     static ref POOL: Pool<Postgres> = PgPoolOptions::new()
         .max_connections(10)
         .connect_lazy(&DATABASE_URL)
         .unwrap();
+    static ref BOT_TOKEN: i64 = std::env::var("BOT_ID")
+        .expect("Expected bot token")
+        .parse::<i64>()
+        .expect("Expected bot token to be numeric");
 }
 
 #[tokio::main]
@@ -65,7 +68,9 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
             Command::Id => {
                 misc::handle_id(cx, &*POOL).await?;
             }
-            Command::Info(_) => {}
+            Command::Ban => {
+                banning::ban(cx, &*POOL).await?;
+            }
         },
         Err(_) => {}
     }

@@ -1,3 +1,5 @@
+pub mod perms;
+
 use sqlx::{Pool, Postgres};
 use teloxide::{
     prelude::Requester,
