@@ -49,8 +49,27 @@ async fn is_user_admin(cx: &Cx, user_id: i64) -> anyhow::Result<()> {
     match chat_member.status() {
         ChatMemberStatus::Administrator => Ok(()),
         ChatMemberStatus::Creator => Ok(()),
-        _ => Err(anyhow!("User is not admin"))
+        _ => Err(anyhow!("User is not admin")),
     }
+}
+
+pub async fn require_bot_restrict_chat_members(cx: &Cx) -> anyhow::Result<()> {
+    let chat_member = &cx
+        .requester
+        .get_chat_member(cx.update.chat_id(), *BOT_ID)
+        .await?;
+
+    if let ChatMemberKind::Administrator(adm) = &chat_member.kind {
+        if !adm.can_restrict_members {
+            cx.reply_to(
+                "I am missing the required permission for this action: CAN_RESTRICT_MEMBERS.",
+            )
+            .await?;
+            return Err(anyhow!("Bot cannot restrict chat members"));
+        }
+    }
+
+    Ok(())
 }
 
 pub async fn require_restrict_chat_members(cx: &Cx) -> anyhow::Result<()> {
@@ -64,10 +83,10 @@ pub async fn require_restrict_chat_members(cx: &Cx) -> anyhow::Result<()> {
         if let ChatMemberKind::Administrator(adm) = chat_member.kind {
             if !adm.can_restrict_members {
                 cx.reply_to(
-                    "You're missing the required permission for this action: CAN_RESTRICT_MEMBERS",
+                    "You're missing the required permission for this action: CAN_RESTRICT_MEMBERS.",
                 )
                 .await?;
-                return Err(anyhow!("Bot is not admin"));
+                return Err(anyhow!("User cannot restrict chat members"));
             }
         }
     }

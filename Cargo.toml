@@ -24,3 +24,7 @@ lazy_static = "1.4.0"
 
 [build-dependencies]
 cargo-emit = "0.1.1"
+
+[profile.release]
+opt-level = 3
+lto = true
