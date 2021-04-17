@@ -14,11 +14,7 @@ use crate::{
 pub async fn ban(cx: Cx, is_tban: bool, pool: &Pool<Postgres>) -> anyhow::Result<()> {
     let chat = &cx.update.chat;
 
-    if chat.is_private() {
-        cx.reply_to("This command is meant to be used in a group!")
-            .await?;
-    }
-
+    perms::require_public_group(&cx).await?;
     perms::require_bot_restrict_chat_members(&cx).await?;
     perms::require_restrict_chat_members(&cx).await?;
 
@@ -79,7 +75,7 @@ pub async fn ban(cx: Cx, is_tban: bool, pool: &Pool<Postgres>) -> anyhow::Result
         }
     } else {
         cx.requester
-            .kick_chat_member(cx.update.chat_id(), user_id.unwrap())
+            .kick_chat_member(chat.id, user_id.unwrap())
             .await?;
 
         cx.reply_to("Banned!").await?;
@@ -91,11 +87,7 @@ pub async fn ban(cx: Cx, is_tban: bool, pool: &Pool<Postgres>) -> anyhow::Result
 pub async fn kick(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
     let chat = &cx.update.chat;
 
-    if chat.is_private() {
-        cx.reply_to("This command is meant to be used in a group!")
-            .await?;
-    }
-
+    perms::require_public_group(&cx).await?;
     perms::require_bot_restrict_chat_members(&cx).await?;
     perms::require_restrict_chat_members(&cx).await?;
 
@@ -132,7 +124,7 @@ pub async fn kick(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
     }
 
     cx.requester
-        .unban_chat_member(cx.update.chat_id(), user_id.unwrap())
+        .unban_chat_member(chat.id, user_id.unwrap())
         .await?;
 
     cx.reply_to("Kicked!").await?;

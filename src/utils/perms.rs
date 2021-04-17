@@ -1,3 +1,5 @@
+use std::any;
+
 use crate::BOT_ID;
 use anyhow::anyhow;
 use teloxide::{
@@ -89,6 +91,15 @@ pub async fn require_restrict_chat_members(cx: &Cx) -> anyhow::Result<()> {
                 return Err(anyhow!("User cannot restrict chat members"));
             }
         }
+    }
+
+    Ok(())
+}
+
+pub async fn require_public_group(cx: &Cx) -> anyhow::Result<()> {
+    if cx.update.chat.is_private() {
+        cx.reply_to("This command is meant to be used in a group!")
+            .await?;
     }
 
     Ok(())
