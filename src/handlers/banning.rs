@@ -22,17 +22,13 @@ pub async fn ban(cx: Cx, is_tban: bool, pool: &Pool<Postgres>) -> anyhow::Result
         perms::require_bot_restrict_chat_members(&cx)
     )?;
 
-    perms::require_public_group(&cx).await?;
-    perms::require_bot_restrict_chat_members(&cx).await?;
-    perms::require_restrict_chat_members(&cx).await?;
-
     let (user_id, args) = utils::extract_user_and_text(&cx, pool).await;
     if user_id.is_none() {
         cx.reply_to("Try targeting a user next time bud.").await?;
         return Ok(());
     }
 
-    if args.is_none() {
+    if args.is_none() && is_tban {
         cx.reply_to("You need to specify a duration in d/h/m/s (days, hours, minutes, seconds)")
             .await?;
         return Ok(());
@@ -160,6 +156,55 @@ pub async fn kickme(cx: Cx) -> anyhow::Result<()> {
     cx.requester
         .unban_chat_member(cx.chat_id(), user.id)
         .await?;
+
+    Ok(())
+}
+
+pub async fn unban(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
+    let chat = &cx.update.chat;
+
+    tokio::try_join!(
+        perms::require_public_group(&cx),
+        perms::require_restrict_chat_members(&cx),
+        perms::require_bot_restrict_chat_members(&cx)
+    )?;
+
+    let (user_id, _) = utils::extract_user_and_text(&cx, pool).await;
+    if user_id.is_none() {
+        cx.reply_to("Try targeting a user next time bud.").await?;
+        return Ok(());
+    }
+
+    let chat_member: ChatMember = match cx
+        .requester
+        .get_chat_member(chat.id, user_id.unwrap())
+        .await
+    {
+        Ok(m) => m,
+        Err(_) => {
+            cx.reply_to("This user is ded mate.").await?;
+            return Ok(());
+        }
+    };
+
+    if match chat_member.status() {
+        ChatMemberStatus::Kicked => false,
+        _ => true,
+    } {
+        cx.reply_to("This user wasn't banned!").await?;
+        return Ok(());
+    }
+
+    if user_id.unwrap() == *BOT_ID {
+        cx.reply_to("What exactly are you trying to do?").await?;
+        return Ok(());
+    }
+
+    cx.requester
+        .unban_chat_member(chat.id, user_id.unwrap())
+        .await?;
+
+    cx.reply_to("Unbanned!").await?;
 
     Ok(())
 }

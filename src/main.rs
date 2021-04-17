@@ -28,6 +28,8 @@ enum Command {
     Kick,
     #[command(description = "Kick yourself")]
     Kickme,
+    #[command(description = "Unban a user")]
+    Unban,
 }
 
 type Cx = UpdateWithCx<Arc<DefaultParseMode<AutoSend<Bot>>>, Message>;
@@ -85,6 +87,9 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
             }
             Command::Kickme => {
                 banning::kickme(cx).await?;
+            }
+            Command::Unban => {
+                banning::unban(cx, &*POOL).await?;
             }
         },
         Err(_) => {}
