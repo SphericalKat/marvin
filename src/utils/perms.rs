@@ -30,7 +30,7 @@ pub async fn require_bot_admin(cx: &Cx) -> anyhow::Result<()> {
         Err(_) => {
             cx.reply_to("The bot must be an admin for this to work!")
                 .await?;
-            return Err(anyhow!("Bot is not admin"));
+            Err(anyhow!("Bot is not admin"))
         }
     };
 }
@@ -59,16 +59,14 @@ pub async fn require_bot_restrict_chat_members(cx: &Cx) -> anyhow::Result<()> {
         .await?;
 
     if let ChatMemberKind::Administrator(adm) = &chat_member.kind {
-        if !adm.can_restrict_members {
-            cx.reply_to(
-                "I am missing the required permission for this action: CAN_RESTRICT_MEMBERS.",
-            )
-            .await?;
-            return Err(anyhow!("Bot cannot restrict chat members"));
+        if adm.can_restrict_members {
+            return Ok(());
         }
     }
 
-    Ok(())
+    cx.reply_to("I am missing the required permission for this action: CAN_RESTRICT_MEMBERS.")
+        .await?;
+    Err(anyhow!("Bot cannot restrict chat members"))
 }
 
 pub async fn require_restrict_chat_members(cx: &Cx) -> anyhow::Result<()> {
@@ -80,24 +78,24 @@ pub async fn require_restrict_chat_members(cx: &Cx) -> anyhow::Result<()> {
             .get_chat_member(cx.update.chat_id(), user.id)
             .await?;
         if let ChatMemberKind::Administrator(adm) = chat_member.kind {
-            if !adm.can_restrict_members {
-                cx.reply_to(
-                    "You're missing the required permission for this action: CAN_RESTRICT_MEMBERS.",
-                )
-                .await?;
-                return Err(anyhow!("User cannot restrict chat members"));
+            if adm.can_restrict_members {
+                return Ok(());
             }
         }
     }
 
-    Ok(())
+    cx.reply_to("You're missing the required permission for this action: CAN_RESTRICT_MEMBERS.")
+        .await?;
+    Err(anyhow!("User cannot restrict chat members"))
 }
 
 pub async fn require_public_group(cx: &Cx) -> anyhow::Result<()> {
-    if cx.update.chat.is_private() {
-        cx.reply_to("This command is meant to be used in a group!")
-            .await?;
+    let chat = &cx.update.chat;
+    if chat.is_group() || chat.is_supergroup() {
+        return Ok(());
     }
 
-    Ok(())
+    cx.reply_to("This command is meant to be used in a group!")
+        .await?;
+    Err(anyhow!("This command is meant to be used in a group"))
 }
