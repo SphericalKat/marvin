@@ -77,10 +77,17 @@ pub async fn require_restrict_chat_members(cx: &Cx) -> anyhow::Result<()> {
             .requester
             .get_chat_member(cx.update.chat_id(), user.id)
             .await?;
-        if let ChatMemberKind::Administrator(adm) = chat_member.kind {
-            if adm.can_restrict_members {
+
+        match &chat_member.kind {
+            ChatMemberKind::Creator(_) => {
                 return Ok(());
             }
+            ChatMemberKind::Administrator(adm) => {
+                if adm.can_restrict_members {
+                    return Ok(());
+                }
+            }
+            _ => {}
         }
     }
 
@@ -125,10 +132,17 @@ pub async fn require_promote_chat_members(cx: &Cx) -> anyhow::Result<()> {
             .requester
             .get_chat_member(cx.update.chat_id(), user.id)
             .await?;
-        if let ChatMemberKind::Administrator(adm) = chat_member.kind {
-            if adm.can_promote_members {
+
+        match &chat_member.kind {
+            ChatMemberKind::Creator(_) => {
                 return Ok(());
             }
+            ChatMemberKind::Administrator(adm) => {
+                if adm.can_promote_members {
+                    return Ok(());
+                }
+            }
+            _ => {}
         }
     }
 
@@ -145,10 +159,17 @@ pub async fn require_can_pin_messages(cx: &Cx) -> anyhow::Result<()> {
             .requester
             .get_chat_member(cx.update.chat_id(), user.id)
             .await?;
-        if let ChatMemberKind::Administrator(adm) = chat_member.kind {
-            if adm.can_pin_messages.unwrap_or(false) {
+
+        match &chat_member.kind {
+            ChatMemberKind::Creator(_) => {
                 return Ok(());
             }
+            ChatMemberKind::Administrator(adm) => {
+                if adm.can_pin_messages.unwrap_or(false) {
+                    return Ok(());
+                }
+            }
+            _ => {}
         }
     }
 
