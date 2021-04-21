@@ -32,6 +32,8 @@ enum Command {
     Unban,
     #[command(description = "Promote a user")]
     Promote,
+    #[command(description = "Demote a user")]
+    Demote,
 }
 
 type Cx = UpdateWithCx<Arc<DefaultParseMode<AutoSend<Bot>>>, Message>;
@@ -95,6 +97,9 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
             }
             Command::Promote => {
                 admin::promote(cx, &*POOL).await?;
+            }
+            Command::Demote => {
+                admin::demote(cx, &*POOL).await?;
             }
         },
         Err(_) => {}
