@@ -1,6 +1,6 @@
 use sqlx::{Pool, Postgres};
 
-use crate::utils::{self, PinMode, perms};
+use crate::utils::{self, perms, PinMode};
 use crate::Cx;
 use crate::BOT_ID;
 use teloxide::{
@@ -160,6 +160,34 @@ pub async fn pin(cx: Cx, mode: PinMode) -> anyhow::Result<()> {
             .await?;
     } else {
         cx.reply_to("Can't pin that message!").await?;
+    }
+
+    Ok(())
+}
+
+pub async fn invite(cx: Cx) -> anyhow::Result<()> {
+    match &cx.update.chat.kind {
+        teloxide::types::ChatKind::Public(c) => {
+            if c.invite_link.is_some() {
+                cx.reply_to(c.invite_link.as_ref().unwrap()).await?;
+            } else {
+                match cx.requester.export_chat_invite_link(cx.chat_id()).await {
+                    Ok(u) => {
+                        cx.reply_to(u).await?;
+                    }
+                    Err(_) => {
+                        cx.reply_to(
+                            "I don't have access to the invite link, try changing my permissions!",
+                        )
+                        .await?;
+                    }
+                }
+            }
+        }
+        teloxide::types::ChatKind::Private(_) => {
+            cx.reply_to("I can only give you invite links for supergroups and channels, sorry!")
+                .await?;
+        }
     }
 
     Ok(())

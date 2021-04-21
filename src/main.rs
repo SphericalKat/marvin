@@ -3,11 +3,11 @@ use dotenv::dotenv;
 use handlers::{admin, banning, misc, save_chat_handler, save_user_handler};
 use lazy_static::lazy_static;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
-use utils::PinMode;
 use std::sync::Arc;
 use teloxide::{
     adaptors::DefaultParseMode, prelude::*, types::ParseMode, utils::command::BotCommand,
 };
+use utils::PinMode;
 
 pub mod entities;
 pub mod handlers;
@@ -37,6 +37,8 @@ enum Command {
     Demote,
     #[command(description = "Pin a message")]
     Pin(PinMode),
+    #[command(description = "Get the chat's invite link")]
+    Invitelink,
 }
 
 type Cx = UpdateWithCx<Arc<DefaultParseMode<AutoSend<Bot>>>, Message>;
@@ -106,6 +108,9 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
             }
             Command::Pin(mode) => {
                 admin::pin(cx, mode).await?;
+            }
+            Command::Invitelink => {
+                admin::invite(cx).await?;
             }
         },
         Err(_) => {}
