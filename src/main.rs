@@ -1,6 +1,6 @@
 #![feature(destructuring_assignment)]
 use dotenv::dotenv;
-use handlers::{banning, misc, save_chat_handler, save_user_handler};
+use handlers::{admin, banning, misc, save_chat_handler, save_user_handler};
 use lazy_static::lazy_static;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use std::sync::Arc;
@@ -30,6 +30,8 @@ enum Command {
     Kickme,
     #[command(description = "Unban a user")]
     Unban,
+    #[command(description = "Promote a user")]
+    Promote,
 }
 
 type Cx = UpdateWithCx<Arc<DefaultParseMode<AutoSend<Bot>>>, Message>;
@@ -90,6 +92,9 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
             }
             Command::Unban => {
                 banning::unban(cx, &*POOL).await?;
+            }
+            Command::Promote => {
+                admin::promote(cx, &*POOL).await?;
             }
         },
         Err(_) => {}
