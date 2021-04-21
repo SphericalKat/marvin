@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod banning;
 pub mod misc;
 
