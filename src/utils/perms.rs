@@ -89,7 +89,7 @@ pub async fn require_restrict_chat_members(cx: &Cx) -> anyhow::Result<()> {
     Err(anyhow!("User cannot restrict chat members"))
 }
 
-pub async fn require_public_group(cx: &Cx) -> anyhow::Result<()> {
+pub async fn require_group(cx: &Cx) -> anyhow::Result<()> {
     let chat = &cx.update.chat;
     if chat.is_group() || chat.is_supergroup() {
         return Ok(());
@@ -135,4 +135,41 @@ pub async fn require_promote_chat_members(cx: &Cx) -> anyhow::Result<()> {
     cx.reply_to("You're missing the required permission for this action: CAN_PROMOTE_MEMBERS.")
         .await?;
     Err(anyhow!("User cannot promote chat members"))
+}
+
+pub async fn require_can_pin_messages(cx: &Cx) -> anyhow::Result<()> {
+    let user = &cx.update.from();
+
+    if let Some(user) = user {
+        let chat_member: ChatMember = cx
+            .requester
+            .get_chat_member(cx.update.chat_id(), user.id)
+            .await?;
+        if let ChatMemberKind::Administrator(adm) = chat_member.kind {
+            if adm.can_pin_messages.unwrap_or(false) {
+                return Ok(());
+            }
+        }
+    }
+
+    cx.reply_to("You're missing the required permission for this action: CAN_PIN_MESSAGES.")
+        .await?;
+    Err(anyhow!("User cannot pin messages"))
+}
+
+pub async fn require_bot_can_pin_messages(cx: &Cx) -> anyhow::Result<()> {
+    let chat_member = &cx
+        .requester
+        .get_chat_member(cx.update.chat_id(), *BOT_ID)
+        .await?;
+
+    if let ChatMemberKind::Administrator(adm) = &chat_member.kind {
+        if adm.can_pin_messages.unwrap_or(false) {
+            return Ok(());
+        }
+    }
+
+    cx.reply_to("I am missing the required permission for this action: CAN_PIN_MESSAGES.")
+        .await?;
+    Err(anyhow!("Bot cannot pin messages"))
 }

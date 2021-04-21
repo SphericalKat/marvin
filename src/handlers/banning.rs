@@ -18,7 +18,7 @@ pub async fn ban(cx: Cx, is_tban: bool, pool: &Pool<Postgres>) -> anyhow::Result
 
     // check for required conditions
     tokio::try_join!(
-        perms::require_public_group(&cx), // command needs to be in a public group
+        perms::require_group(&cx), // command needs to be in a public group
         perms::require_restrict_chat_members(&cx), // user requires RESTRICT_CHAT_MEMBERS permissions
         perms::require_bot_restrict_chat_members(&cx) // bot requires RESTRICT_CHAT_MEMBERS permissions
     )?;
@@ -105,7 +105,7 @@ pub async fn kick(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
 
     // check for required conditions
     tokio::try_join!(
-        perms::require_public_group(&cx), // command needs to be in a public group
+        perms::require_group(&cx), // command needs to be in a public group
         perms::require_restrict_chat_members(&cx), // user requires RESTRICT_CHAT_MEMBERS permissions
         perms::require_bot_restrict_chat_members(&cx) // bot requires RESTRICT_CHAT_MEMBERS permissions
     )?;
@@ -165,7 +165,7 @@ pub async fn kick(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
 pub async fn kickme(cx: Cx) -> anyhow::Result<()> {
     // check for required conditions
     tokio::try_join!(
-        perms::require_public_group(&cx), // command needs to be in a public group
+        perms::require_group(&cx), // command needs to be in a public group
         perms::require_bot_restrict_chat_members(&cx) // bot requires RESTRICT_CHAT_MEMBERS permissions
     )?;
 
@@ -195,7 +195,7 @@ pub async fn unban(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
 
     // check for required conditions
     tokio::try_join!(
-        perms::require_public_group(&cx), // command needs to be in a public group
+        perms::require_group(&cx), // command needs to be in a public group
         perms::require_restrict_chat_members(&cx), // user requires RESTRICT_CHAT_MEMBERS permissions
         perms::require_bot_restrict_chat_members(&cx) // bot requires RESTRICT_CHAT_MEMBERS permissions
     )?;

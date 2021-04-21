@@ -3,6 +3,7 @@ use dotenv::dotenv;
 use handlers::{admin, banning, misc, save_chat_handler, save_user_handler};
 use lazy_static::lazy_static;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use utils::PinMode;
 use std::sync::Arc;
 use teloxide::{
     adaptors::DefaultParseMode, prelude::*, types::ParseMode, utils::command::BotCommand,
@@ -34,6 +35,8 @@ enum Command {
     Promote,
     #[command(description = "Demote a user")]
     Demote,
+    #[command(description = "Pin a message")]
+    Pin(PinMode),
 }
 
 type Cx = UpdateWithCx<Arc<DefaultParseMode<AutoSend<Bot>>>, Message>;
@@ -100,6 +103,9 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
             }
             Command::Demote => {
                 admin::demote(cx, &*POOL).await?;
+            }
+            Command::Pin(mode) => {
+                admin::pin(cx, mode).await?;
             }
         },
         Err(_) => {}

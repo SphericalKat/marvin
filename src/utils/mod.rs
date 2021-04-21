@@ -224,3 +224,27 @@ pub fn extract_time(unit: &UnitOfTime) -> u64 {
         UnitOfTime::Days(t) => t * 3600 * 24,
     }
 }
+
+pub enum PinMode {
+    Silent,
+    Loud,
+}
+
+impl PinMode {
+    pub fn is_silent(self) -> bool {
+        match self {
+            PinMode::Silent => true,
+            PinMode::Loud => false,
+        }
+    }
+}
+
+impl FromStr for PinMode {
+    type Err = &'static str;
+    fn from_str(s: &str) -> Result<Self, <Self as FromStr>::Err> {
+        Ok(match s {
+            "notify" | "loud" | "violent" => PinMode::Loud,
+            _ => PinMode::Silent,
+        })
+    }
+}

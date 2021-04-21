@@ -1,6 +1,6 @@
 use sqlx::{Pool, Postgres};
 
-use crate::utils::{self, perms};
+use crate::utils::{self, PinMode, perms};
 use crate::Cx;
 use crate::BOT_ID;
 use teloxide::{
@@ -13,7 +13,7 @@ pub async fn promote(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
 
     // check for required conditions
     tokio::try_join!(
-        perms::require_public_group(&cx), // command needs to be in a public group
+        perms::require_group(&cx), // command needs to be in a public group
         perms::require_promote_chat_members(&cx), // user requires CAN_PROMOTE_MEMBERS permissions
         perms::require_bot_promote_chat_members(&cx)  // bot requires CAN_PROMOTE_MEMBERS permissions
     )?;
@@ -78,7 +78,7 @@ pub async fn demote(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
 
     // check for required conditions
     tokio::try_join!(
-        perms::require_public_group(&cx), // command needs to be in a public group
+        perms::require_group(&cx), // command needs to be in a public group
         perms::require_promote_chat_members(&cx), // user requires CAN_PROMOTE_MEMBERS permissions
         perms::require_bot_promote_chat_members(&cx)  // bot requires CAN_PROMOTE_MEMBERS permissions
     )?;
@@ -141,6 +141,26 @@ pub async fn demote(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
     }
 
     cx.reply_to("Successfully demoted!").await?;
+
+    Ok(())
+}
+
+pub async fn pin(cx: Cx, mode: PinMode) -> anyhow::Result<()> {
+    // check for required conditions
+    tokio::try_join!(
+        perms::require_group(&cx), // command needs to be in a public group
+        perms::require_can_pin_messages(&cx), // user requires CAN_PROMOTE_MEMBERS permissions
+        perms::require_bot_can_pin_messages(&cx), // bot requires CAN_PROMOTE_MEMBERS permissions
+    )?;
+
+    if let Some(prev_msg) = cx.update.reply_to_message() {
+        cx.requester
+            .pin_chat_message(cx.chat_id(), prev_msg.id)
+            .disable_notification(mode.is_silent())
+            .await?;
+    } else {
+        cx.reply_to("Can't pin that message!").await?;
+    }
 
     Ok(())
 }
