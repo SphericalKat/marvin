@@ -1,6 +1,7 @@
 #![feature(destructuring_assignment)]
+
 use dotenv::dotenv;
-use handlers::{admin, banning, misc, save_chat_handler, save_user_handler};
+use handlers::{admin, banning, misc, muting, save_chat_handler, save_user_handler};
 use lazy_static::lazy_static;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use std::sync::Arc;
@@ -31,6 +32,12 @@ enum Command {
     Kickme,
     #[command(description = "Unban a user")]
     Unban,
+    #[command(description = "Mute a user.")]
+    Mute,
+    #[command(description = "Temporarily mute a user.")]
+    Tmute,
+    #[command(description = "Unmute a user.")]
+    Unmute,
     #[command(description = "Promote a user")]
     Promote,
     #[command(description = "Demote a user")]
@@ -99,6 +106,15 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
             }
             Command::Unban => {
                 banning::unban(cx, &*POOL).await?;
+            }
+            Command::Mute => {
+                muting::mute(cx, false, &*POOL).await?;
+            }
+            Command::Tmute => {
+                muting::mute(cx, true, &*POOL).await?;
+            }
+            Command::Unmute => {
+                muting::unmute(cx, &*POOL).await?;
             }
             Command::Promote => {
                 admin::promote(cx, &*POOL).await?;

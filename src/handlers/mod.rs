@@ -1,6 +1,7 @@
 pub mod admin;
 pub mod banning;
 pub mod misc;
+pub mod muting;
 
 use sqlx::{Pool, Postgres};
 use teloxide::types::ChatKind;
