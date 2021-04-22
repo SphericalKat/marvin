@@ -62,18 +62,14 @@ pub async fn is_user_restricted(cx: &Cx, user_id: i64) -> anyhow::Result<bool> {
         .get_chat_member(cx.update.chat_id(), user_id)
         .await?;
 
-    if chat_member.kind.can_send_messages().unwrap_or(false)
+    let is_restricted = chat_member.kind.can_send_messages().unwrap_or(false)
         && chat_member.kind.can_send_media_messages().unwrap_or(false)
         && chat_member
             .kind
             .can_add_web_page_previews()
             .unwrap_or(false)
-        && chat_member.kind.can_send_other_messages().unwrap_or(false)
-    {
-        Ok(false)
-    } else {
-        Ok(true)
-    }
+        && chat_member.kind.can_send_other_messages().unwrap_or(false);
+    Ok(is_restricted)
 }
 
 pub async fn require_bot_restrict_chat_members(cx: &Cx) -> anyhow::Result<()> {
