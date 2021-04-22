@@ -30,15 +30,13 @@ pub async fn handle_id(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
                     .await?;
                 }
             }
-        } else {
-            if let ChatKind::Private(user) = cx.requester.get_chat(user_id).await?.kind {
-                cx.reply_to(format!(
-                    "{}'s ID is {}",
-                    html::escape(&user.first_name.unwrap_or("".to_owned())),
-                    html::code_inline(&user_id.to_string())
-                ))
-                .await?;
-            }
+        } else if let ChatKind::Private(user) = cx.requester.get_chat(user_id).await?.kind {
+            cx.reply_to(format!(
+                "{}'s ID is {}",
+                html::escape(&user.first_name.unwrap_or_else(|| "".to_owned())),
+                html::code_inline(&user_id.to_string())
+            ))
+            .await?;
         }
     } else {
         let chat = &cx.update.chat;

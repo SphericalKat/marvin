@@ -64,19 +64,16 @@ pub async fn extract_user_and_text(
             // filter out only text mention entities
             let filtered_entities: Vec<_> = entities
                 .iter()
-                .filter(|entity| match entity.kind {
-                    MessageEntityKind::TextMention { user: _ } => true,
-                    _ => false,
-                })
+                .filter(|entity| matches!(entity.kind, MessageEntityKind::TextMention { user: _ }))
                 .collect();
 
             // use first entity for extracting user
-            if filtered_entities.len() > 0 {
+            if !filtered_entities.is_empty() {
                 ent = Some(&entities[0]);
             }
 
             // if entity offset matches (command end/text start) then all is well
-            if entities.len() != 0 && ent.is_some() {
+            if !entities.is_empty() && ent.is_some() {
                 if ent.unwrap().offset == msg_text.len() - text_to_parse.len() {
                     ent = Some(&entities[0]);
                     user_id = match &ent.unwrap().kind {
@@ -86,7 +83,7 @@ pub async fn extract_user_and_text(
                     text = Some(msg_text[ent.unwrap().offset + ent.unwrap().length..].to_owned());
                 }
             // args exist and first arg is a @ mention
-            } else if args.len() >= 1 && args[0].chars().nth(0) == Some('@') {
+            } else if !args.is_empty() && args[0].starts_with('@') {
                 let user_name = args[0];
                 let res =
                     users::get_user(None, Some(user_name.to_string().replace("@", "")), pool).await;
@@ -105,7 +102,7 @@ pub async fn extract_user_and_text(
                     return (None, None);
                 }
             // check if first argument is a user ID
-            } else if args.len() >= 1 {
+            } else if !args.is_empty() {
                 if let Ok(id) = args[0].parse::<i64>() {
                     user_id = Some(id);
                     let res: Vec<_> = msg_text.splitn(3, char::is_whitespace).collect();
@@ -231,7 +228,7 @@ pub enum PinMode {
 }
 
 impl PinMode {
-    pub fn is_silent(self) -> bool {
+    pub fn is_silent(&self) -> bool {
         match self {
             PinMode::Silent => true,
             PinMode::Loud => false,

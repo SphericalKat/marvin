@@ -82,8 +82,8 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
 
     let cmd = Command::parse(text.unwrap(), "rust_tgbot");
 
-    match cmd {
-        Ok(c) => match c {
+    if let Ok(c) = cmd {
+        match c {
             Command::Help => cx
                 .reply_to(Command::descriptions())
                 .send()
@@ -128,8 +128,7 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
             Command::Invitelink => {
                 admin::invite(cx).await?;
             }
-        },
-        Err(_) => {}
+        }
     }
 
     Ok(())
