@@ -52,11 +52,10 @@ pub async fn ban(cx: Cx, is_tban: bool, pool: &Pool<Postgres>) -> anyhow::Result
     };
 
     // don't try to ban admins
-    if match chat_member.status() {
-        ChatMemberStatus::Administrator => true,
-        ChatMemberStatus::Creator => true,
-        _ => false,
-    } {
+    if matches!(
+        chat_member.status(),
+        ChatMemberStatus::Administrator | ChatMemberStatus::Creator
+    ) {
         cx.reply_to("I'm not banning an administrator!").await?;
         return Ok(());
     }
@@ -170,7 +169,7 @@ pub async fn kickme(cx: Cx) -> anyhow::Result<()> {
     )?;
 
     // attempt to get user from message
-    let user = cx.update.from().ok_or(anyhow!("No user found"))?;
+    let user = cx.update.from().ok_or_else(|| anyhow!("No user found"))?;
 
     // don't try to ban admins
     if perms::is_user_admin(&cx, user.id).await.is_ok() {
@@ -221,10 +220,7 @@ pub async fn unban(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
     };
 
     // don't try to unban users still in the chat
-    if match chat_member.status() {
-        ChatMemberStatus::Kicked => false,
-        _ => true,
-    } {
+    if !matches!(chat_member.status(), ChatMemberStatus::Kicked) {
         cx.reply_to("This user wasn't banned!").await?;
         return Ok(());
     }
