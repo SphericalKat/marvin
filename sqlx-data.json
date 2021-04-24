@@ -1,0 +1,89 @@
+{
+  "db": "PostgreSQL",
+  "312b968b4e5847e0a1854e6725cfa467e545c3bc4eb94e18c01f781b46fb9e49": {
+    "query": "\n        INSERT into users (user_id, user_name, full_name) VALUES ($1, $2, $3) \n        ON CONFLICT (user_id) DO \n        UPDATE SET (user_name, full_name) = (excluded.user_name, excluded.full_name)\n        WHERE (users.user_name, users.full_name) IS DISTINCT FROM (excluded.user_name, excluded.full_name)\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "3940f5d6d00d79211743a24bf40a1a82b77929b9ad73ca20192619f76370e9b9": {
+    "query": "SELECT * FROM chats WHERE chat_id = $1",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "chat_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "chat_name",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      },
+      "nullable": [
+        false,
+        true
+      ]
+    }
+  },
+  "6d03c282e75e6406d183f6b980c65d0f871d05644de2f0f331aea63c75d44fb6": {
+    "query": "SELECT * FROM users WHERE user_id = $1 OR user_name = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "user_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "user_name",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "full_name",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        true,
+        false
+      ]
+    }
+  },
+  "7f1920abcae01411145db5717625ad8d24e7001f497846603dda8f2548f3c7a0": {
+    "query": "\n        INSERT into chats (chat_id, chat_name) VALUES ($1, $2)\n        ON CONFLICT (chat_id) DO\n        UPDATE SET chat_name = excluded.chat_name\n        WHERE (chats.chat_name) IS DISTINCT FROM (excluded.chat_name)\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  }
+}
