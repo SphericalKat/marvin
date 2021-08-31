@@ -36,3 +36,18 @@ pub async fn get_note(
 
     Ok(note)
 }
+
+pub async fn delete_note(
+    chat_id: Option<i64>,
+    note_id: Option<i64>,
+    pool: &Pool<Postgres>,
+) -> anyhow::Result<()> {
+    sqlx::query!(
+        "DELETE FROM notes WHERE chat_id = $1 AND note_id  = $2",
+        chat_id,
+        note_id
+    )
+    .execute(pool)
+    .await?;
+    Ok(())
+}
