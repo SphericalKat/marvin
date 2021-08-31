@@ -36,7 +36,7 @@ pub async fn save_chat_handler(cx: &Cx, pool: &Pool<Postgres>) -> anyhow::Result
 
         match &chat.kind {
             ChatKind::Public(pu) => chats::insert_chat(chat.id, pu.title.clone(), pool).await?,
-            ChatKind::Private(_) => {}
+            ChatKind::Private(pri) => chats::insert_chat(chat.id, pri.username.clone(), pool).await?
         }
     }
 
