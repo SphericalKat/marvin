@@ -25,14 +25,14 @@ async fn is_bot_admin(cx: &Cx) -> anyhow::Result<()> {
 }
 
 pub async fn require_bot_admin(cx: &Cx) -> anyhow::Result<()> {
-    return match is_bot_admin(cx).await {
+    match is_bot_admin(cx).await {
         Ok(_) => Ok(()),
         Err(_) => {
             cx.reply_to("The bot must be an admin for this to work!")
                 .await?;
             Err(anyhow!("Bot is not admin"))
         }
-    };
+    }
 }
 
 pub async fn is_user_admin(cx: &Cx, user_id: i64) -> anyhow::Result<()> {
@@ -49,6 +49,24 @@ pub async fn is_user_admin(cx: &Cx, user_id: i64) -> anyhow::Result<()> {
         ChatMemberStatus::Administrator => Ok(()),
         ChatMemberStatus::Creator => Ok(()),
         _ => Err(anyhow!("User is not admin")),
+    }
+}
+
+pub async fn require_user_admin(cx: &Cx) -> anyhow::Result<()> {
+    let user_id = match cx.update.from() {
+        Some(user) => user.id,
+        None => {
+            return Err(anyhow!("User not found"));
+        }
+    };
+
+    match is_user_admin(cx, user_id).await {
+        Ok(_) => Ok(()),
+        Err(_) => {
+            cx.reply_to("You need to be an admin for this to work!")
+                .await?;
+            Err(anyhow!("User is not admin"))
+        }
     }
 }
 

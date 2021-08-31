@@ -1,5 +1,6 @@
 pub mod admin;
 pub mod banning;
+pub mod filters;
 pub mod misc;
 pub mod muting;
 
