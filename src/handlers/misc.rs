@@ -38,13 +38,6 @@ pub async fn handle_id(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
             ))
             .await?;
         }
-    } else {
-        let chat = &cx.update.chat;
-        cx.reply_to(format!(
-            "This chat's ID is {}",
-            html::code_inline(&chat.id.to_string())
-        ))
-        .await?;
     }
     Ok(())
 }
