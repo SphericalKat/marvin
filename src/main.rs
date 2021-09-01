@@ -131,7 +131,7 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
                 admin::invite(cx).await?;
             }
             Command::Save => {
-                filters::save_note(cx).await?;
+                filters::save_note(cx, &*POOL).await?;
             }
         }
     }

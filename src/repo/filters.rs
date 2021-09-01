@@ -22,9 +22,9 @@ pub async fn insert_note(note: &Note, pool: &Pool<Postgres>) -> anyhow::Result<(
 
 pub async fn get_note(
     chat_id: Option<i64>,
-    note_id: Option<i64>,
+    note_id: Option<&str>,
     pool: &Pool<Postgres>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<Note> {
     let note = sqlx::query_as!(
         Note,
         "SELECT * FROM notes WHERE chat_id = $1 AND note_id = $2",
@@ -39,7 +39,7 @@ pub async fn get_note(
 
 pub async fn delete_note(
     chat_id: Option<i64>,
-    note_id: Option<i64>,
+    note_id: Option<&str>,
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {
     sqlx::query!(
