@@ -37,7 +37,7 @@ pub async fn require_bot_admin(cx: &Cx) -> anyhow::Result<()> {
 
 pub async fn is_user_admin(cx: &Cx, user_id: i64) -> anyhow::Result<()> {
     if cx.update.chat.is_private() {
-        return Err(anyhow!("User is not admin"));
+        return Ok(());
     }
 
     let chat_member: ChatMember = cx
