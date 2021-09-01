@@ -56,7 +56,7 @@ pub async fn extract_user_and_text(
         let args: Vec<_> = text_to_parse.split_whitespace().collect(); // split into vec of strings
 
         let mut user_id: Option<i64> = None; // user id to return
-        let mut text: Option<String> = None; // text to return
+        let mut text: Option<String> = Some(split_text[1].to_owned()); // text to return
         let mut ent: Option<&MessageEntity> = None; // mentioned entity in message
 
         // if entities exist in message
