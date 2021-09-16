@@ -3,6 +3,7 @@ pub mod banning;
 pub mod filters;
 pub mod misc;
 pub mod muting;
+pub mod reminder;
 
 use sqlx::{Pool, Postgres};
 use teloxide::types::ChatKind;

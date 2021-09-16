@@ -1,7 +1,7 @@
 #![feature(destructuring_assignment)]
 
 use dotenv::dotenv;
-use handlers::{admin, banning, filters, misc, muting, save_chat_handler, save_user_handler};
+use handlers::{admin, banning, filters, misc, muting, reminder, save_chat_handler, save_user_handler};
 use lazy_static::lazy_static;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use std::sync::Arc;
@@ -48,6 +48,8 @@ enum Command {
     Invitelink,
     #[command(description = "Save a note in this chat")]
     Save,
+    #[command(description = "Reminds a message after a specified time")]
+    RemindMe,
 }
 
 type Cx = UpdateWithCx<Arc<DefaultParseMode<AutoSend<Bot>>>, Message>;
@@ -132,6 +134,9 @@ async fn handler(cx: Cx) -> anyhow::Result<()> {
             }
             Command::Save => {
                 filters::save_note(cx, &*POOL).await?;
+            }
+            Command::RemindMe => {
+                reminder::set_reminder(cx).await?;
             }
         }
     }

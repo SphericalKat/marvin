@@ -209,6 +209,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "cron"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "628a3464535cee4e75af89e8c293bab926deaddfa166553b75029066c846be3f"
+dependencies = [
+ "chrono",
+ "nom 4.1.1",
+]
+
+[[package]]
 name = "crossbeam-channel"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -799,6 +809,7 @@ dependencies = [
  "sqlx",
  "teloxide",
  "tokio",
+ "tokio-cron-scheduler",
 ]
 
 [[package]]
@@ -885,6 +896,15 @@ name = "never"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c96aba5aa877601bb3f6dd6a63a969e1f82e60646e81e71b14496995e9853c91"
+
+[[package]]
+name = "nom"
+version = "4.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c349f68f25f596b9f44cf0e7c69752a5c633b0550c3ff849518bfba0233774a"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "nom"
@@ -1553,7 +1573,7 @@ checksum = "6d86e3c77ff882a828346ba401a7ef4b8e440df804491c6064fe8295765de71c"
 dependencies = [
  "lazy_static",
  "maplit",
- "nom",
+ "nom 6.1.2",
  "regex",
  "unicode_categories",
 ]
@@ -1846,6 +1866,18 @@ dependencies = [
  "signal-hook-registry",
  "tokio-macros",
  "winapi",
+]
+
+[[package]]
+name = "tokio-cron-scheduler"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5b2c664a1a2c807bb7753c535341089c05b6a5421b7c1956e0226862c069f0b2"
+dependencies = [
+ "chrono",
+ "cron",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]
