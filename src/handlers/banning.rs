@@ -54,7 +54,7 @@ pub async fn ban(cx: Cx, is_tban: bool, pool: &Pool<Postgres>) -> anyhow::Result
     // don't try to ban admins
     if matches!(
         chat_member.status(),
-        ChatMemberStatus::Administrator | ChatMemberStatus::Creator
+        ChatMemberStatus::Administrator | ChatMemberStatus::Owner
     ) {
         cx.reply_to("I'm not banning an administrator!").await?;
         return Ok(());
@@ -131,8 +131,8 @@ pub async fn kick(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
 
     // don't try to ban admins
     if match chat_member.status() {
-        ChatMemberStatus::Creator | ChatMemberStatus::Administrator => true,
-        ChatMemberStatus::Kicked | ChatMemberStatus::Left => {
+        ChatMemberStatus::Owner | ChatMemberStatus::Administrator => true,
+        ChatMemberStatus::Banned | ChatMemberStatus::Left => {
             // user is trying to be smart, but we're smarter
             cx.reply_to("This user isn't in the chat!").await?;
             return Ok(());
@@ -220,7 +220,7 @@ pub async fn unban(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
     };
 
     // don't try to unban users still in the chat
-    if !matches!(chat_member.status(), ChatMemberStatus::Kicked) {
+    if !matches!(chat_member.status(), ChatMemberStatus::Banned) {
         cx.reply_to("This user wasn't banned!").await?;
         return Ok(());
     }

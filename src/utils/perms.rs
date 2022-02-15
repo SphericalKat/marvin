@@ -47,7 +47,7 @@ pub async fn is_user_admin(cx: &Cx, user_id: i64) -> anyhow::Result<()> {
 
     match chat_member.status() {
         ChatMemberStatus::Administrator => Ok(()),
-        ChatMemberStatus::Creator => Ok(()),
+        ChatMemberStatus::Owner => Ok(()),
         _ => Err(anyhow!("User is not admin")),
     }
 }
@@ -80,13 +80,12 @@ pub async fn is_user_restricted(cx: &Cx, user_id: i64) -> anyhow::Result<bool> {
         .get_chat_member(cx.update.chat_id(), user_id)
         .await?;
 
-    let is_restricted = chat_member.kind.can_send_messages().unwrap_or(false)
-        && chat_member.kind.can_send_media_messages().unwrap_or(false)
+    let is_restricted = chat_member.kind.can_send_messages()
+        && chat_member.kind.can_send_media_messages()
         && chat_member
             .kind
             .can_add_web_page_previews()
-            .unwrap_or(false)
-        && chat_member.kind.can_send_other_messages().unwrap_or(false);
+        && chat_member.kind.can_send_other_messages();
     Ok(is_restricted)
 }
 
@@ -117,7 +116,7 @@ pub async fn require_restrict_chat_members(cx: &Cx) -> anyhow::Result<()> {
             .await?;
 
         match &chat_member.kind {
-            ChatMemberKind::Creator(_) => {
+            ChatMemberKind::Owner(_) => {
                 return Ok(());
             }
             ChatMemberKind::Administrator(adm) => {
@@ -172,7 +171,7 @@ pub async fn require_promote_chat_members(cx: &Cx) -> anyhow::Result<()> {
             .await?;
 
         match &chat_member.kind {
-            ChatMemberKind::Creator(_) => {
+            ChatMemberKind::Owner(_) => {
                 return Ok(());
             }
             ChatMemberKind::Administrator(adm) => {
@@ -199,7 +198,7 @@ pub async fn require_can_pin_messages(cx: &Cx) -> anyhow::Result<()> {
             .await?;
 
         match &chat_member.kind {
-            ChatMemberKind::Creator(_) => {
+            ChatMemberKind::Owner(_) => {
                 return Ok(());
             }
             ChatMemberKind::Administrator(adm) => {

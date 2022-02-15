@@ -47,24 +47,23 @@ pub async fn promote(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
 
     let bot_chat_member: ChatMember = cx.requester.get_chat_member(chat.id, *BOT_ID).await?;
 
-    if user_member.kind.can_be_edited().unwrap_or(false) {
+    if user_member.kind.can_be_edited() {
         cx.requester
             .promote_chat_member(chat.id, user_id.unwrap())
-            .can_manage_chat(bot_chat_member.kind.can_manage_chat().unwrap_or(false))
-            .can_change_info(bot_chat_member.kind.can_change_info().unwrap_or(false))
-            .can_delete_messages(bot_chat_member.kind.can_delete_messages().unwrap_or(false))
+            .can_manage_chat(bot_chat_member.kind.can_manage_chat())
+            .can_change_info(bot_chat_member.kind.can_change_info())
+            .can_delete_messages(bot_chat_member.kind.can_delete_messages())
             .can_manage_voice_chats(
                 bot_chat_member
                     .kind
-                    .can_manage_voice_chats()
-                    .unwrap_or(false),
+                    .can_manage_voice_chats(),
             )
-            .can_invite_users(bot_chat_member.kind.can_invite_users().unwrap_or(false))
-            .can_restrict_members(bot_chat_member.kind.can_restrict_members().unwrap_or(false))
+            .can_invite_users(bot_chat_member.kind.can_invite_users())
+            .can_restrict_members(bot_chat_member.kind.can_restrict_members())
             .can_pin_messages(
-                bot_chat_member.kind.can_pin_messages().unwrap_or(false) && chat.is_supergroup(),
+                bot_chat_member.kind.can_pin_messages() && chat.is_supergroup(),
             )
-            .can_promote_members(bot_chat_member.kind.can_promote_members().unwrap_or(false))
+            .can_promote_members(bot_chat_member.kind.can_promote_members())
             .await?;
     }
 
@@ -106,7 +105,7 @@ pub async fn demote(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
 
     match user_member.status() {
         ChatMemberStatus::Administrator => {}
-        ChatMemberStatus::Creator => {
+        ChatMemberStatus::Owner => {
             cx.reply_to("This person CREATED the chat, how would I demote them?")
                 .await?;
             return Ok(());
@@ -123,7 +122,7 @@ pub async fn demote(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
         return Ok(());
     }
 
-    if user_member.kind.can_be_edited().unwrap_or(false) {
+    if user_member.kind.can_be_edited() {
         cx.requester
             .promote_chat_member(chat.id, user_id.unwrap())
             .can_manage_chat(false)

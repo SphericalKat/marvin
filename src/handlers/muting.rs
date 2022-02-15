@@ -1,3 +1,6 @@
+
+use std::time::Duration;
+
 use sqlx::{Pool, Postgres};
 use teloxide::{
     prelude::*,
@@ -50,13 +53,13 @@ pub async fn mute(cx: Cx, is_tmute: bool, pool: &Pool<Postgres>) -> anyhow::Resu
 
     match chat_member.status() {
         // don't try to mute admins
-        ChatMemberStatus::Administrator | ChatMemberStatus::Creator => {
+        ChatMemberStatus::Administrator | ChatMemberStatus::Owner => {
             cx.reply_to("I'm not muting an administrator!").await?;
             return Ok(());
         }
 
         // don't try to mute users not in the chat
-        ChatMemberStatus::Kicked | ChatMemberStatus::Left => {
+        ChatMemberStatus::Banned | ChatMemberStatus::Left => {
             cx.reply_to("This user isn't in the chat!").await?;
             return Ok(());
         }
@@ -72,12 +75,7 @@ pub async fn mute(cx: Cx, is_tmute: bool, pool: &Pool<Postgres>) -> anyhow::Resu
     // check if user is already restricted
     let is_restricted = perms::is_user_restricted(&cx, user_id.unwrap()).await?;
 
-    let permissions = ChatPermissions::new()
-        .can_send_messages(false)
-        .can_send_media_messages(false)
-        .can_send_other_messages(false)
-        .can_send_polls(false)
-        .can_add_web_page_previews(false);
+    let permissions = ChatPermissions::empty();
 
     if let Some(args) = args {
         if is_tmute {
@@ -90,11 +88,16 @@ pub async fn mute(cx: Cx, is_tmute: bool, pool: &Pool<Postgres>) -> anyhow::Resu
 
             // convert to seconds
             let time = utils::extract_time(unit.as_ref().unwrap());
+						let until_time = cx.update.date.checked_add_signed(chrono::oldtime::Duration::from_secs(time));
+						if until_time.is_none() {
+							cx.reply_to("Something went wrong!").await?;
+							return Ok(());
+						}
 
             // mute chat member for specified time
             cx.requester
                 .restrict_chat_member(chat.id, user_id.unwrap(), permissions)
-                .until_date(cx.update.date as u64 + time)
+                .until_date(until_time.unwrap())
                 .await?;
 
             if is_restricted {
@@ -157,7 +160,7 @@ pub async fn unmute(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
     // don't try to unmute users not in the chat
     if matches!(
         chat_member.status(),
-        ChatMemberStatus::Kicked | ChatMemberStatus::Left
+        ChatMemberStatus::Banned | ChatMemberStatus::Left
     ) {
         cx.reply_to("This user isn't in the chat!").await?;
         return Ok(());
