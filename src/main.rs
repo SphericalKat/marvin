@@ -111,22 +111,22 @@ async fn handler(bot: AutoSend<Bot>, message: Message, command: Command) -> anyh
             muting::mute(&bot, &message, true, &*POOL).await?;
         }
         Command::Unmute => {
-            muting::unmute(cx, &*POOL).await?;
+            muting::unmute(&bot, &message, &*POOL).await?;
         }
         Command::Promote => {
-            admin::promote(cx, &*POOL).await?;
+            admin::promote(&bot, &message, &*POOL).await?;
         }
         Command::Demote => {
-            admin::demote(cx, &*POOL).await?;
+            admin::demote(&bot, &message, &*POOL).await?;
         }
         Command::Pin(mode) => {
-            admin::pin(cx, mode).await?;
+            admin::pin(&bot, &message, mode).await?;
         }
         Command::Invitelink => {
-            admin::invite(cx).await?;
+            admin::invite(&bot, &message).await?;
         }
         Command::Save => {
-            filters::save_note(cx, &*POOL).await?;
+            filters::save_note(&bot, &message, &*POOL).await?;
         }
     }
 
