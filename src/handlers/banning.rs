@@ -1,3 +1,6 @@
+use std::convert::TryInto;
+
+use chrono::Duration;
 use sqlx::{Pool, Postgres};
 use teloxide::{
     prelude::*,
@@ -77,11 +80,15 @@ pub async fn ban(cx: Cx, is_tban: bool, pool: &Pool<Postgres>) -> anyhow::Result
 
             // convert to seconds
             let time = utils::extract_time(unit.as_ref().unwrap());
+						let until_time = cx
+                .update
+                .date
+                .checked_add_signed(Duration::seconds(time.try_into().unwrap())).ok_or(anyhow!("Something went wrong!"))?;
 
             // ban chat member for specified time
             cx.requester
                 .kick_chat_member(chat.id, user_id.unwrap())
-                .until_date(cx.update.date as u64 + time)
+                .until_date(until_time)
                 .await?;
             cx.reply_to(format!("Banned for {}!", unit.unwrap()))
                 .await?;

@@ -4,15 +4,16 @@ use std::{fmt::Display, str::FromStr};
 
 use sqlx::{Pool, Postgres};
 use teloxide::{
-    prelude::Requester,
+    payloads::SendMessageSetters,
+    prelude2::*,
     types::{MessageEntity, MessageEntityKind},
 };
 
-use crate::{repo::users, Cx};
+use crate::repo::users;
 
-pub fn id_from_reply(cx: &Cx) -> (Option<i64>, Option<String>) {
+pub fn id_from_reply(bot: &AutoSend<Bot>, message: &Message) -> (Option<i64>, Option<String>) {
     // check for reply
-    let prev_message = cx.update.reply_to_message();
+    let prev_message = message.reply_to_message();
     if prev_message.is_none() {
         return (None, None);
     }
@@ -39,16 +40,17 @@ pub fn id_from_reply(cx: &Cx) -> (Option<i64>, Option<String>) {
 }
 
 pub async fn extract_user_and_text(
-    cx: &Cx,
+    bot: &AutoSend<Bot>,
+    message: &Message,
     pool: &Pool<Postgres>,
 ) -> (Option<i64>, Option<String>) {
-    if let Some(msg_text) = cx.update.text() {
+    if let Some(msg_text) = message.text() {
         // split into command and args
         let split_text: Vec<_> = msg_text.splitn(2, char::is_whitespace).collect();
 
         // only command exists, return ID from reply
         if split_text.len() < 2 {
-            return id_from_reply(cx);
+            return id_from_reply(bot, message);
         }
 
         // parse second part of split
@@ -60,7 +62,7 @@ pub async fn extract_user_and_text(
         let mut ent: Option<&MessageEntity> = None; // mentioned entity in message
 
         // if entities exist in message
-        if let Some(entities) = cx.update.entities() {
+        if let Some(entities) = message.entities() {
             // filter out only text mention entities
             let filtered_entities: Vec<_> = entities
                 .iter()
@@ -94,9 +96,11 @@ pub async fn extract_user_and_text(
                         text = Some(split[2].to_owned());
                     }
                 } else {
-                    cx.reply_to(
+                    bot.send_message(
+                        message.chat.id,
                         "Could not find a user by this name; are you sure I've seen them before?",
                     )
+                    .reply_to_message_id(message.id)
                     .await
                     .ok();
                     return (None, None);
@@ -111,8 +115,8 @@ pub async fn extract_user_and_text(
                     }
                 }
             // check if command is a reply to message
-            } else if cx.update.reply_to_message().is_some() {
-                (user_id, text) = id_from_reply(&cx);
+            } else if message.reply_to_message().is_some() {
+                (user_id, text) = id_from_reply(bot, message);
             } else {
                 // nothing satisfied, bail
                 return (None, None);
@@ -120,11 +124,14 @@ pub async fn extract_user_and_text(
 
             // check if bot has interacted with this user before
             if let Some(id) = user_id {
-                match cx.requester.get_chat(id).await {
+                match bot.get_chat(id).await {
                     Ok(_) => {}
                     Err(_) => {
                         // haven't seen this user, bail
-                        cx.reply_to("I don't seem to have interacted with this user before - please forward a message from them to give me control! (like a voodoo doll, I need a piece of them to be able to execute certain commands...)").await.ok();
+                        bot.send_message(id, "I don't seem to have interacted with this user before - please forward a message from them to give me control! (like a voodoo doll, I need a piece of them to be able to execute certain commands...)")
+												.reply_to_message_id(message.id)
+												.await
+												.ok();
                         return (None, None);
                     }
                 }

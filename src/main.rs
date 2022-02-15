@@ -2,9 +2,10 @@ use dotenv::dotenv;
 use handlers::{admin, banning, filters, misc, muting, save_chat_handler, save_user_handler};
 use lazy_static::lazy_static;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
-use std::sync::Arc;
 use teloxide::{
-    adaptors::DefaultParseMode, prelude::*, types::ParseMode, utils::command::BotCommand,
+    prelude2::*,
+    types::{ChatAction, ParseMode},
+    utils::command::BotCommand,
 };
 use utils::PinMode;
 
@@ -48,8 +49,6 @@ enum Command {
     Save,
 }
 
-type Cx = UpdateWithCx<Arc<DefaultParseMode<AutoSend<Bot>>>, Message>;
-
 lazy_static! {
     static ref DATABASE_URL: String = std::env::var("DATABASE_URL").expect("Expected database url");
     static ref POOL: Pool<Postgres> = PgPoolOptions::new()
@@ -67,70 +66,67 @@ async fn main() -> anyhow::Result<()> {
     run().await
 }
 
-async fn handler(cx: Cx) -> anyhow::Result<()> {
+async fn handler(bot: AutoSend<Bot>, message: Message, command: Command) -> anyhow::Result<()> {
     // opportunistically save user/chat details to db
     tokio::try_join!(
-        save_user_handler(&cx, &*POOL),
-        save_chat_handler(&cx, &*POOL)
+        save_user_handler(&bot, &message, &*POOL),
+        save_chat_handler(&bot, &message, &*POOL)
     )?;
 
     // check if update contains any text
-    let text = cx.update.text();
-    if text.is_none() {
+    let text = message.text();
+    if message.text().is_none() {
         return Ok(());
     }
 
-    let cmd = Command::parse(text.unwrap(), "rust_tgbot");
-
-    if let Ok(c) = cmd {
-        match c {
-            Command::Help => cx
-                .reply_to(Command::descriptions())
-                .send()
-                .await
-                .map(|_| ())?,
-            Command::Id => {
-                misc::handle_id(cx, &*POOL).await?;
-            }
-            Command::Ban => {
-                banning::ban(cx, false, &*POOL).await?;
-            }
-            Command::Tban => {
-                banning::ban(cx, true, &*POOL).await?;
-            }
-            Command::Kick => {
-                banning::kick(cx, &*POOL).await?;
-            }
-            Command::Kickme => {
-                banning::kickme(cx).await?;
-            }
-            Command::Unban => {
-                banning::unban(cx, &*POOL).await?;
-            }
-            Command::Mute => {
-                muting::mute(cx, false, &*POOL).await?;
-            }
-            Command::Tmute => {
-                muting::mute(cx, true, &*POOL).await?;
-            }
-            Command::Unmute => {
-                muting::unmute(cx, &*POOL).await?;
-            }
-            Command::Promote => {
-                admin::promote(cx, &*POOL).await?;
-            }
-            Command::Demote => {
-                admin::demote(cx, &*POOL).await?;
-            }
-            Command::Pin(mode) => {
-                admin::pin(cx, mode).await?;
-            }
-            Command::Invitelink => {
-                admin::invite(cx).await?;
-            }
-            Command::Save => {
-                filters::save_note(cx, &*POOL).await?;
-            }
+    match command {
+        Command::Help => {
+            bot.send_chat_action(message.chat.id, ChatAction::Typing)
+                .await?;
+            bot.send_message(message.chat.id, Command::descriptions())
+                .await?;
+        }
+        Command::Id => {
+            misc::handle_id(cx, &*POOL).await?;
+        }
+        Command::Ban => {
+            banning::ban(cx, false, &*POOL).await?;
+        }
+        Command::Tban => {
+            banning::ban(cx, true, &*POOL).await?;
+        }
+        Command::Kick => {
+            banning::kick(cx, &*POOL).await?;
+        }
+        Command::Kickme => {
+            banning::kickme(cx).await?;
+        }
+        Command::Unban => {
+            banning::unban(cx, &*POOL).await?;
+        }
+        Command::Mute => {
+            muting::mute(cx, false, &*POOL).await?;
+        }
+        Command::Tmute => {
+            muting::mute(cx, true, &*POOL).await?;
+        }
+        Command::Unmute => {
+            muting::unmute(cx, &*POOL).await?;
+        }
+        Command::Promote => {
+            admin::promote(cx, &*POOL).await?;
+        }
+        Command::Demote => {
+            admin::demote(cx, &*POOL).await?;
+        }
+        Command::Pin(mode) => {
+            admin::pin(cx, mode).await?;
+        }
+        Command::Invitelink => {
+            admin::invite(cx).await?;
+        }
+        Command::Save => {
+            filters::save_note(cx, &*POOL).await?;
         }
     }
 
@@ -144,9 +140,9 @@ async fn run() -> anyhow::Result<()> {
 
     // start bot
     log::info!("Starting marvin...");
-    let bot = Arc::new(Bot::from_env().auto_send().parse_mode(ParseMode::Html));
+    let bot = Bot::from_env().auto_send();
 
-    teloxide::repl(bot.clone(), handler).await;
+    teloxide::repls2::commands_repl(bot, handler, Command::ty()).await;
 
     Ok(())
 }

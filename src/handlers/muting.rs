@@ -1,11 +1,13 @@
+use std::convert::TryInto;
 
-use std::time::Duration;
-
+use chrono::Duration;
 use sqlx::{Pool, Postgres};
 use teloxide::{
     prelude::*,
     types::{ChatMember, ChatMemberStatus, ChatPermissions},
 };
+
+use anyhow::anyhow;
 
 use crate::{utils::UnitOfTime, BOT_ID};
 use crate::{
@@ -88,16 +90,16 @@ pub async fn mute(cx: Cx, is_tmute: bool, pool: &Pool<Postgres>) -> anyhow::Resu
 
             // convert to seconds
             let time = utils::extract_time(unit.as_ref().unwrap());
-						let until_time = cx.update.date.checked_add_signed(chrono::oldtime::Duration::from_secs(time));
-						if until_time.is_none() {
-							cx.reply_to("Something went wrong!").await?;
-							return Ok(());
-						}
+            let until_time = cx
+                .update
+                .date
+                .checked_add_signed(Duration::seconds(time.try_into().unwrap()))
+                .ok_or(anyhow!("Something went wrong!"))?;
 
             // mute chat member for specified time
             cx.requester
                 .restrict_chat_member(chat.id, user_id.unwrap(), permissions)
-                .until_date(until_time.unwrap())
+                .until_date(until_time)
                 .await?;
 
             if is_restricted {
@@ -178,12 +180,17 @@ pub async fn unmute(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
         return Ok(());
     }
 
-    let permissions = ChatPermissions::new()
-        .can_send_messages(true)
-        .can_send_media_messages(true)
-        .can_send_other_messages(true)
-        .can_send_polls(true)
-        .can_add_web_page_previews(true);
+    let permissions = ChatPermissions::empty()
+        | ChatPermissions::SEND_MESSAGES
+        | ChatPermissions::SEND_MEDIA_MESSAGES
+        | ChatPermissions::SEND_OTHER_MESSAGES
+        | ChatPermissions::SEND_POLLS
+        | ChatPermissions::ADD_WEB_PAGE_PREVIEWS;
+    // .can_send_messages(true)
+    // .can_send_media_messages(true)
+    // .can_send_other_messages(true)
+    // .can_send_polls(true)
+    // .can_add_web_page_previews(true);
 
     // unmute the user
     cx.requester

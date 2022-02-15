@@ -5,16 +5,23 @@ pub mod misc;
 pub mod muting;
 
 use sqlx::{Pool, Postgres};
-use teloxide::types::ChatKind;
+use teloxide::{
+    adaptors::AutoSend,
+    types::{ChatKind, Message},
+    Bot,
+};
 
 use crate::{
     entities::User,
     repo::{chats, users},
-    Cx,
 };
 
-pub async fn save_user_handler(cx: &Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
-    if let Some(user) = cx.update.from() {
+pub async fn save_user_handler(
+    bot: &AutoSend<Bot>,
+    message: &Message,
+    pool: &Pool<Postgres>,
+) -> anyhow::Result<()> {
+    if let Some(user) = message.from() {
         let username = user.username.as_ref().map(|s| s.to_lowercase());
         users::insert_user(
             &User {
@@ -30,13 +37,19 @@ pub async fn save_user_handler(cx: &Cx, pool: &Pool<Postgres>) -> anyhow::Result
     Ok(())
 }
 
-pub async fn save_chat_handler(cx: &Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
-    if cx.update.chat.is_chat() {
-        let chat = &cx.update.chat;
+pub async fn save_chat_handler(
+    bot: &AutoSend<Bot>,
+    message: &Message,
+    pool: &Pool<Postgres>,
+) -> anyhow::Result<()> {
+    if message.chat.is_chat() {
+        let chat = &message.chat;
 
         match &chat.kind {
             ChatKind::Public(pu) => chats::insert_chat(chat.id, pu.title.clone(), pool).await?,
-            ChatKind::Private(pri) => chats::insert_chat(chat.id, pri.username.clone(), pool).await?
+            ChatKind::Private(pri) => {
+                chats::insert_chat(chat.id, pri.username.clone(), pool).await?
+            }
         }
     }
 
