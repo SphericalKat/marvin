@@ -11,7 +11,7 @@ use teloxide::{
 
 use crate::repo::users;
 
-pub fn id_from_reply(bot: &AutoSend<Bot>, message: &Message) -> (Option<i64>, Option<String>) {
+pub fn id_from_reply(_bot: &AutoSend<Bot>, message: &Message) -> (Option<i64>, Option<String>) {
     // check for reply
     let prev_message = message.reply_to_message();
     if prev_message.is_none() {
@@ -232,6 +232,15 @@ pub fn extract_time(unit: &UnitOfTime) -> u64 {
 pub enum PinMode {
     Silent,
     Loud,
+}
+
+impl Clone for PinMode {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Silent => Self::Silent,
+            Self::Loud => Self::Loud,
+        }
+    }
 }
 
 impl PinMode {

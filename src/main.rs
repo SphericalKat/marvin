@@ -2,11 +2,7 @@ use dotenv::dotenv;
 use handlers::{admin, banning, filters, misc, muting, save_chat_handler, save_user_handler};
 use lazy_static::lazy_static;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
-use teloxide::{
-    prelude2::*,
-    types::{ChatAction, ParseMode},
-    utils::command::BotCommand,
-};
+use teloxide::{prelude2::*, types::ChatAction, utils::command::BotCommand};
 use utils::PinMode;
 
 pub mod entities;
@@ -14,7 +10,7 @@ pub mod handlers;
 pub mod repo;
 pub mod utils;
 
-#[derive(BotCommand)]
+#[derive(BotCommand, Clone)]
 #[command(rename = "lowercase", description = "List of supported commands:")]
 enum Command {
     #[command(description = "display this text.")]
@@ -74,7 +70,6 @@ async fn handler(bot: AutoSend<Bot>, message: Message, command: Command) -> anyh
     )?;
 
     // check if update contains any text
-    let text = message.text();
     if message.text().is_none() {
         return Ok(());
     }

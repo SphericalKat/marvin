@@ -17,7 +17,7 @@ use crate::{
 };
 
 pub async fn save_user_handler(
-    bot: &AutoSend<Bot>,
+    _bot: &AutoSend<Bot>,
     message: &Message,
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {
@@ -38,7 +38,7 @@ pub async fn save_user_handler(
 }
 
 pub async fn save_chat_handler(
-    bot: &AutoSend<Bot>,
+    _bot: &AutoSend<Bot>,
     message: &Message,
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {
