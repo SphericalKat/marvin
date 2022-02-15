@@ -1,5 +1,3 @@
-#![feature(destructuring_assignment)]
-
 use dotenv::dotenv;
 use handlers::{admin, banning, filters, misc, muting, save_chat_handler, save_user_handler};
 use lazy_static::lazy_static;
