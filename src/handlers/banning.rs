@@ -80,10 +80,11 @@ pub async fn ban(cx: Cx, is_tban: bool, pool: &Pool<Postgres>) -> anyhow::Result
 
             // convert to seconds
             let time = utils::extract_time(unit.as_ref().unwrap());
-						let until_time = cx
+            let until_time = cx
                 .update
                 .date
-                .checked_add_signed(Duration::seconds(time.try_into().unwrap())).ok_or(anyhow!("Something went wrong!"))?;
+                .checked_add_signed(Duration::seconds(time.try_into().unwrap()))
+                .ok_or(anyhow!("Something went wrong!"))?;
 
             // ban chat member for specified time
             cx.requester

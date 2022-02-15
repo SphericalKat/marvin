@@ -82,9 +82,7 @@ pub async fn is_user_restricted(cx: &Cx, user_id: i64) -> anyhow::Result<bool> {
 
     let is_restricted = chat_member.kind.can_send_messages()
         && chat_member.kind.can_send_media_messages()
-        && chat_member
-            .kind
-            .can_add_web_page_previews()
+        && chat_member.kind.can_add_web_page_previews()
         && chat_member.kind.can_send_other_messages();
     Ok(is_restricted)
 }

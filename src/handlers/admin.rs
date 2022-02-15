@@ -53,16 +53,10 @@ pub async fn promote(cx: Cx, pool: &Pool<Postgres>) -> anyhow::Result<()> {
             .can_manage_chat(bot_chat_member.kind.can_manage_chat())
             .can_change_info(bot_chat_member.kind.can_change_info())
             .can_delete_messages(bot_chat_member.kind.can_delete_messages())
-            .can_manage_voice_chats(
-                bot_chat_member
-                    .kind
-                    .can_manage_voice_chats(),
-            )
+            .can_manage_voice_chats(bot_chat_member.kind.can_manage_voice_chats())
             .can_invite_users(bot_chat_member.kind.can_invite_users())
             .can_restrict_members(bot_chat_member.kind.can_restrict_members())
-            .can_pin_messages(
-                bot_chat_member.kind.can_pin_messages() && chat.is_supergroup(),
-            )
+            .can_pin_messages(bot_chat_member.kind.can_pin_messages() && chat.is_supergroup())
             .can_promote_members(bot_chat_member.kind.can_promote_members())
             .await?;
     }
