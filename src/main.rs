@@ -87,28 +87,28 @@ async fn handler(bot: AutoSend<Bot>, message: Message, command: Command) -> anyh
                 .await?;
         }
         Command::Id => {
-            misc::handle_id(cx, &*POOL).await?;
+            misc::handle_id(&bot, &message, &*POOL).await?;
         }
         Command::Ban => {
-            banning::ban(cx, false, &*POOL).await?;
+            banning::ban(&bot, &message, false, &*POOL).await?;
         }
         Command::Tban => {
-            banning::ban(cx, true, &*POOL).await?;
+            banning::ban(&bot, &message, true, &*POOL).await?;
         }
         Command::Kick => {
-            banning::kick(cx, &*POOL).await?;
+            banning::kick(&bot, &message, &*POOL).await?;
         }
         Command::Kickme => {
-            banning::kickme(cx).await?;
+            banning::kickme(&bot, &message).await?;
         }
         Command::Unban => {
-            banning::unban(cx, &*POOL).await?;
+            banning::unban(&bot, &message, &*POOL).await?;
         }
         Command::Mute => {
-            muting::mute(cx, false, &*POOL).await?;
+            muting::mute(&bot, &message, false, &*POOL).await?;
         }
         Command::Tmute => {
-            muting::mute(cx, true, &*POOL).await?;
+            muting::mute(&bot, &message, true, &*POOL).await?;
         }
         Command::Unmute => {
             muting::unmute(cx, &*POOL).await?;
