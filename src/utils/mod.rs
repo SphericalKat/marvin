@@ -64,13 +64,12 @@ pub async fn extract_user_and_text(
         // if entities exist in message
         if let Some(entities) = message.entities() {
             // filter out only text mention entities
-            let filtered_entities: Vec<_> = entities
+            let filtered_entities = entities
                 .iter()
-                .filter(|entity| matches!(entity.kind, MessageEntityKind::TextMention { user: _ }))
-                .collect();
+                .filter(|entity| matches!(entity.kind, MessageEntityKind::TextMention { user: _ }));
 
             // use first entity for extracting user
-            if !filtered_entities.is_empty() {
+            if !filtered_entities.count() == 0 {
                 ent = Some(&entities[0]);
             }
 

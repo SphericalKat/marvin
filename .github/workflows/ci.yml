@@ -23,6 +23,10 @@ jobs:
           override: true
           components: rustfmt
 
+      - uses: Swatinem/rust-cache@v1
+        with:
+          cache-on-failure: true
+
       - name: fmt
         uses: actions-rs/cargo@v1
         with:
@@ -40,11 +44,15 @@ jobs:
           override: true
           components: clippy
 
+      - uses: Swatinem/rust-cache@v1
+        with:
+          cache-on-failure: true
+
       - name: clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: --all-targets --all-features -- -D warnings
+          args: --all-targets --all-features --
 
   create-release:
     name: deploy

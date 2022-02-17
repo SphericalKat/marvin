@@ -26,7 +26,7 @@ pub async fn save_note(
         return Ok(());
     }
 
-    let content = text.as_ref().unwrap().split_once(" ");
+    let content = text.as_ref().unwrap().split_once(' ');
     if content.is_none() {
         // no content in text
         bot.send_message(message.chat.id, "You need to give the note some content!")

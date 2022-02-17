@@ -73,8 +73,8 @@ async fn main() -> anyhow::Result<()> {
 async fn save_details(bot: &Bot, message: &Message) -> anyhow::Result<()> {
     // opportunistically save user/chat details to db
     tokio::try_join!(
-        save_user_handler(&bot, &message, &*POOL),
-        save_chat_handler(&bot, &message, &*POOL)
+        save_user_handler(bot, message, &*POOL),
+        save_chat_handler(bot, message, &*POOL)
     )?;
 
     Ok(())
