@@ -73,10 +73,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
+      
+      - name: Install libssl-dev
+        run: sudo apt-get install -y libssl-dev
+
       - name: Install rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: nightly-2022-02-02
           profile: minimal
           override: true
           target: ${{ matrix.target }}

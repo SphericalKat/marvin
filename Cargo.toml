@@ -1,6 +1,6 @@
 [package]
 name = "marvin"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["SphericalKat <amolele@gmail.com>"]
 edition = "2018"
 description = "A group management bot for Telegram"
