@@ -70,7 +70,6 @@ pub async fn get_note(
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {
     // extract text from message
-
     let note_id: String;
     if !from_command {
         note_id = message.text().unwrap().replace("#", "");
@@ -92,10 +91,9 @@ pub async fn get_note(
                 .reply_to_message_id(message.id)
                 .await?;
         }
-        Err(err) => {
-            bot.send_message(message.chat.id, err.to_string())
-                .reply_to_message_id(message.id)
-                .await?;
+        Err(_) => {
+            // ignore error
+            return Ok(());
         }
     }
 

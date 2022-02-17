@@ -93,8 +93,12 @@ async fn answer(bot: Bot, message: Message) -> anyhow::Result<()> {
         return Ok(());
     }
 
-    // check if string begins with
-    if text.unwrap().starts_with('#') && text.unwrap().split_whitespace().count() < 2 {
+    // handle note
+    let unwrapped_text = text.unwrap();
+    if unwrapped_text.starts_with('#')
+        && unwrapped_text.split_whitespace().count() < 2
+        && unwrapped_text != "#"
+    {
         filters::get_note(&bot, &message, false, &*POOL).await?;
     }
 
