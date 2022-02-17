@@ -89,7 +89,7 @@ async fn answer(bot: Bot, message: Message) -> anyhow::Result<()> {
 
     let cmd = Command::parse(text.unwrap(), "rust_tgbot").ok();
 
-		save_details(&bot, &message).await?;
+    save_details(&bot, &message).await?;
 
     if cmd.is_some() {
         match cmd.unwrap() {
@@ -158,10 +158,7 @@ async fn run() -> anyhow::Result<()> {
         .parse_mode(ParseMode::Html)
         .auto_send();
 
-    let handler = dptree::entry().branch(
-        Update::filter_message()
-            .endpoint(answer)
-    );
+    let handler = dptree::entry().branch(Update::filter_message().endpoint(answer));
 
     Dispatcher::builder(bot, handler)
         .build()

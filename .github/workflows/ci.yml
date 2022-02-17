@@ -10,33 +10,39 @@ on:
 
 jobs:
   style:
-    name: Check Style
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-
-      - name: Install rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
-          components: rustfmt, clippy
           profile: minimal
+          toolchain: nightly-2022-02-02
           override: true
+          components: rustfmt
 
-      - name: cargo fmt -- --check
+      - name: fmt
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --all -- --check
 
-      - name: Annotate commit with clippy warnings
-        if: "${{ github.event_name == 'push' }}"
-        uses: actions-rs/clippy-check@v1
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+          profile: minimal
+          toolchain: nightly-2022-02-02
+          override: true
+          components: clippy
+
+      - name: clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --all-features -- -D warnings
 
   create-release:
     name: deploy
@@ -80,7 +86,7 @@ jobs:
 
           cd target/${{ matrix.target }}/release          
           # UPDATEME: replace the string "rust-ci" with your binary's name.
-          tar czvf ../../../marvin-${{ matrix.target }}.tar.gz rust-ci
+          tar czvf ../../../marvin-${{ matrix.target }}.tar.gz marvin
           cd -
 
       - name: Publish
