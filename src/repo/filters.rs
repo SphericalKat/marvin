@@ -20,7 +20,7 @@ pub async fn insert_note(note: &Note, pool: &Pool<Postgres>) -> anyhow::Result<(
     Ok(())
 }
 
-pub async fn get_note(
+pub async fn fetch_note(
     chat_id: Option<i64>,
     note_id: Option<&str>,
     pool: &Pool<Postgres>,

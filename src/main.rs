@@ -51,6 +51,10 @@ enum Command {
     Invitelink,
     #[command(description = "Save a note in this chat")]
     Save,
+    #[command(
+        description = "Get a saved note in this chat. Can be used as <code>#notename</code> or <code>/get notename</code>"
+    )]
+    Get,
 }
 
 lazy_static! {
@@ -81,15 +85,20 @@ async fn save_details(bot: &Bot, message: &Message) -> anyhow::Result<()> {
 }
 
 async fn answer(bot: Bot, message: Message) -> anyhow::Result<()> {
+    save_details(&bot, &message).await?;
+
     // check if update contains any text
     let text = message.text();
     if text.is_none() {
         return Ok(());
     }
 
-    let cmd = Command::parse(text.unwrap(), "rust_tgbot").ok();
+    // check if string begins with
+    if text.unwrap().starts_with('#') && text.unwrap().split_whitespace().count() < 2 {
+        filters::get_note(&bot, &message, false, &*POOL).await?;
+    }
 
-    save_details(&bot, &message).await?;
+    let cmd = Command::parse(text.unwrap(), "rust_tgbot").ok();
 
     if cmd.is_some() {
         match cmd.unwrap() {
@@ -140,6 +149,9 @@ async fn answer(bot: Bot, message: Message) -> anyhow::Result<()> {
             }
             Command::Save => {
                 filters::save_note(&bot, &message, &*POOL).await?;
+            }
+            Command::Get => {
+                filters::get_note(&bot, &message, true, &*POOL).await?;
             }
         }
     }
