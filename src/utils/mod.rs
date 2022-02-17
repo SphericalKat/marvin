@@ -87,7 +87,7 @@ pub async fn extract_user_and_text(
             } else if !args.is_empty() && args[0].starts_with('@') {
                 let user_name = args[0];
                 let res =
-                    users::get_user(None, Some(user_name.to_string().replace("@", "")), pool).await;
+                    users::get_user(None, Some(user_name.to_string().replace('@', "")), pool).await;
                 if res.is_ok() {
                     user_id = Some(res.unwrap().user_id);
                     let split: Vec<_> = msg_text.splitn(3, char::is_whitespace).collect();
