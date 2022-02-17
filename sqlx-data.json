@@ -1,5 +1,18 @@
 {
   "db": "PostgreSQL",
+  "120a25777fe2995b9bc66b6ea817839b41408b802bc28c1391c14305db51dec5": {
+    "query": "DELETE FROM notes WHERE chat_id = $1 AND note_id  = $2",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "312b968b4e5847e0a1854e6725cfa467e545c3bc4eb94e18c01f781b46fb9e49": {
     "query": "\n        INSERT into users (user_id, user_name, full_name) VALUES ($1, $2, $3) \n        ON CONFLICT (user_id) DO \n        UPDATE SET (user_name, full_name) = (excluded.user_name, excluded.full_name)\n        WHERE (users.user_name, users.full_name) IS DISTINCT FROM (excluded.user_name, excluded.full_name)\n        ",
     "describe": {
@@ -40,6 +53,20 @@
       ]
     }
   },
+  "40e2658702013f34b76ad064db68cb5c98f4e11145b888e46c72e97efb3ca07a": {
+    "query": "\n\t\t\t\tINSERT into notes (chat_id, note_id, note_content) VALUES ($1, $2, $3)\n\t\t\t\tON CONFLICT (chat_id, note_id) DO\n\t\t\t\tUPDATE SET note_content = excluded.note_content\n\t\t\t\tWHERE (notes.note_content) IS DISTINCT FROM (excluded.note_content)\n\t\t\t\t",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text",
+          "Text"
+        ]
+      },
+      "nullable": []
+    }
+  },
   "6d03c282e75e6406d183f6b980c65d0f871d05644de2f0f331aea63c75d44fb6": {
     "query": "SELECT * FROM users WHERE user_id = $1 OR user_name = $2",
     "describe": {
@@ -69,6 +96,39 @@
       "nullable": [
         false,
         true,
+        false
+      ]
+    }
+  },
+  "7b8a2c2fd4ba48c82e0f8ed314abd2daa8cad89ec465bdb2e2370d14edc62ee9": {
+    "query": "SELECT * FROM notes WHERE chat_id = $1 AND note_id = $2",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "chat_id",
+          "type_info": "Int8"
+        },
+        {
+          "ordinal": 1,
+          "name": "note_id",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 2,
+          "name": "note_content",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
         false
       ]
     }
