@@ -5,11 +5,7 @@ pub mod misc;
 pub mod muting;
 
 use sqlx::{Pool, Postgres};
-use teloxide::{
-    adaptors::AutoSend,
-    types::{ChatKind, Message},
-    Bot,
-};
+use teloxide::types::{ChatKind, Message};
 
 use crate::{
     entities::User,
@@ -17,7 +13,7 @@ use crate::{
 };
 
 pub async fn save_user_handler(
-    _bot: &AutoSend<Bot>,
+    _bot: &crate::Bot,
     message: &Message,
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {
@@ -38,7 +34,7 @@ pub async fn save_user_handler(
 }
 
 pub async fn save_chat_handler(
-    _bot: &AutoSend<Bot>,
+    _bot: &crate::Bot,
     message: &Message,
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {

@@ -11,7 +11,7 @@ use teloxide::{
 
 use crate::repo::users;
 
-pub fn id_from_reply(_bot: &AutoSend<Bot>, message: &Message) -> (Option<i64>, Option<String>) {
+pub fn id_from_reply(_bot: &crate::Bot, message: &Message) -> (Option<i64>, Option<String>) {
     // check for reply
     let prev_message = message.reply_to_message();
     if prev_message.is_none() {
@@ -40,7 +40,7 @@ pub fn id_from_reply(_bot: &AutoSend<Bot>, message: &Message) -> (Option<i64>, O
 }
 
 pub async fn extract_user_and_text(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
     pool: &Pool<Postgres>,
 ) -> (Option<i64>, Option<String>) {

@@ -7,7 +7,7 @@ use teloxide::prelude2::*;
 use teloxide::utils::html;
 
 pub async fn save_note(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {

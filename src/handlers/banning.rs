@@ -14,7 +14,7 @@ use crate::{utils::UnitOfTime, BOT_ID};
 use crate::utils::{self, perms};
 
 pub async fn ban(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
     is_tban: bool,
     pool: &Pool<Postgres>,
@@ -108,7 +108,7 @@ pub async fn ban(
 }
 
 pub async fn kick(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {
@@ -171,7 +171,7 @@ pub async fn kick(
     Ok(())
 }
 
-pub async fn kickme(bot: &AutoSend<Bot>, message: &Message) -> anyhow::Result<()> {
+pub async fn kickme(bot: &crate::Bot, message: &Message) -> anyhow::Result<()> {
     // check for required conditions
     tokio::try_join!(
         perms::require_group(bot, message), // command needs to be in a public group
@@ -200,7 +200,7 @@ pub async fn kickme(bot: &AutoSend<Bot>, message: &Message) -> anyhow::Result<()
 }
 
 pub async fn unban(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {

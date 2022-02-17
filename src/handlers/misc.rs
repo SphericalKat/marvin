@@ -6,7 +6,7 @@ use teloxide::{prelude2::*, utils::html};
 use crate::utils;
 
 pub async fn handle_id(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {

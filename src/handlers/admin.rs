@@ -9,7 +9,7 @@ use teloxide::{
 };
 
 pub async fn promote(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {
@@ -74,7 +74,7 @@ pub async fn promote(
 }
 
 pub async fn demote(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {
@@ -160,7 +160,7 @@ pub async fn demote(
     Ok(())
 }
 
-pub async fn pin(bot: &AutoSend<Bot>, message: &Message, mode: PinMode) -> anyhow::Result<()> {
+pub async fn pin(bot: &crate::Bot, message: &Message, mode: PinMode) -> anyhow::Result<()> {
     // check for required conditions
     tokio::try_join!(
         perms::require_group(bot, message), // command needs to be in a public group
@@ -181,7 +181,7 @@ pub async fn pin(bot: &AutoSend<Bot>, message: &Message, mode: PinMode) -> anyho
     Ok(())
 }
 
-pub async fn invite(bot: &AutoSend<Bot>, message: &Message) -> anyhow::Result<()> {
+pub async fn invite(bot: &crate::Bot, message: &Message) -> anyhow::Result<()> {
     match &message.chat.kind {
         teloxide::types::ChatKind::Public(c) => {
             if c.invite_link.is_some() {

@@ -2,13 +2,20 @@ use dotenv::dotenv;
 use handlers::{admin, banning, filters, misc, muting, save_chat_handler, save_user_handler};
 use lazy_static::lazy_static;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
-use teloxide::{prelude2::*, types::ChatAction, utils::command::BotCommand};
+use teloxide::{
+    adaptors::DefaultParseMode,
+    prelude2::*,
+    types::{ChatAction, ParseMode},
+    utils::command::BotCommand,
+};
 use utils::PinMode;
 
 pub mod entities;
 pub mod handlers;
 pub mod repo;
 pub mod utils;
+
+type Bot = AutoSend<DefaultParseMode<teloxide::Bot>>;
 
 #[derive(BotCommand, Clone)]
 #[command(rename = "lowercase", description = "List of supported commands:")]
@@ -62,7 +69,7 @@ async fn main() -> anyhow::Result<()> {
     run().await
 }
 
-async fn handler(bot: AutoSend<Bot>, message: Message, command: Command) -> anyhow::Result<()> {
+async fn handler(bot: Bot, message: Message, command: Command) -> anyhow::Result<()> {
     // opportunistically save user/chat details to db
     tokio::try_join!(
         save_user_handler(&bot, &message, &*POOL),
@@ -135,7 +142,9 @@ async fn run() -> anyhow::Result<()> {
 
     // start bot
     log::info!("Starting marvin...");
-    let bot = Bot::from_env().auto_send();
+    let bot = teloxide::Bot::from_env()
+        .parse_mode(ParseMode::Html)
+        .auto_send();
 
     teloxide::repls2::commands_repl(bot, handler, Command::ty()).await;
 

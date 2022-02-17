@@ -14,7 +14,7 @@ use crate::utils::{self, perms};
 use crate::{utils::UnitOfTime, BOT_ID};
 
 pub async fn mute(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
     is_tmute: bool,
     pool: &Pool<Postgres>,
@@ -152,7 +152,7 @@ pub async fn mute(
 }
 
 pub async fn unmute(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
     pool: &Pool<Postgres>,
 ) -> anyhow::Result<()> {

@@ -6,7 +6,7 @@ use teloxide::{
     types::{ChatMember, ChatMemberKind, ChatMemberStatus},
 };
 
-async fn is_bot_admin(bot: &AutoSend<Bot>, message: &Message) -> anyhow::Result<()> {
+async fn is_bot_admin(bot: &crate::Bot, message: &Message) -> anyhow::Result<()> {
     if message.chat.is_private() {
         return Ok(());
     }
@@ -20,7 +20,7 @@ async fn is_bot_admin(bot: &AutoSend<Bot>, message: &Message) -> anyhow::Result<
     Err(anyhow!("Bot is not admin"))
 }
 
-pub async fn require_bot_admin(bot: &AutoSend<Bot>, message: &Message) -> anyhow::Result<()> {
+pub async fn require_bot_admin(bot: &crate::Bot, message: &Message) -> anyhow::Result<()> {
     match is_bot_admin(bot, message).await {
         Ok(_) => Ok(()),
         Err(_) => {
@@ -36,7 +36,7 @@ pub async fn require_bot_admin(bot: &AutoSend<Bot>, message: &Message) -> anyhow
 }
 
 pub async fn is_user_admin(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
     user_id: i64,
 ) -> anyhow::Result<()> {
@@ -53,7 +53,7 @@ pub async fn is_user_admin(
     }
 }
 
-pub async fn require_user_admin(bot: &AutoSend<Bot>, message: &Message) -> anyhow::Result<()> {
+pub async fn require_user_admin(bot: &crate::Bot, message: &Message) -> anyhow::Result<()> {
     let user_id = match message.from() {
         Some(user) => user.id,
         None => {
@@ -73,7 +73,7 @@ pub async fn require_user_admin(bot: &AutoSend<Bot>, message: &Message) -> anyho
 }
 
 pub async fn is_user_restricted(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
     user_id: i64,
 ) -> anyhow::Result<bool> {
@@ -91,7 +91,7 @@ pub async fn is_user_restricted(
 }
 
 pub async fn require_bot_restrict_chat_members(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
 ) -> anyhow::Result<()> {
     let chat_member = bot.get_chat_member(message.chat.id, *BOT_ID).await?;
@@ -112,7 +112,7 @@ pub async fn require_bot_restrict_chat_members(
 }
 
 pub async fn require_restrict_chat_members(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
 ) -> anyhow::Result<()> {
     let user = message.from();
@@ -142,7 +142,7 @@ pub async fn require_restrict_chat_members(
     Err(anyhow!("User cannot restrict chat members"))
 }
 
-pub async fn require_group(bot: &AutoSend<Bot>, message: &Message) -> anyhow::Result<()> {
+pub async fn require_group(bot: &crate::Bot, message: &Message) -> anyhow::Result<()> {
     let chat = &message.chat;
     if chat.is_group() || chat.is_supergroup() {
         return Ok(());
@@ -155,7 +155,7 @@ pub async fn require_group(bot: &AutoSend<Bot>, message: &Message) -> anyhow::Re
 }
 
 pub async fn require_bot_promote_chat_members(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
 ) -> anyhow::Result<()> {
     let chat_member = bot.get_chat_member(message.chat.id, *BOT_ID).await?;
@@ -176,7 +176,7 @@ pub async fn require_bot_promote_chat_members(
 }
 
 pub async fn require_promote_chat_members(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
 ) -> anyhow::Result<()> {
     let user = message.from();
@@ -206,10 +206,7 @@ pub async fn require_promote_chat_members(
     Err(anyhow!("User cannot promote chat members"))
 }
 
-pub async fn require_can_pin_messages(
-    bot: &AutoSend<Bot>,
-    message: &Message,
-) -> anyhow::Result<()> {
+pub async fn require_can_pin_messages(bot: &crate::Bot, message: &Message) -> anyhow::Result<()> {
     let user = message.from();
 
     if let Some(user) = user {
@@ -238,7 +235,7 @@ pub async fn require_can_pin_messages(
 }
 
 pub async fn require_bot_can_pin_messages(
-    bot: &AutoSend<Bot>,
+    bot: &crate::Bot,
     message: &Message,
 ) -> anyhow::Result<()> {
     let chat_member = bot.get_chat_member(message.chat.id, *BOT_ID).await?;
