@@ -73,9 +73,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      
-      - name: Install libssl-dev
-        run: sudo apt-get install -y libssl-dev
+
+      - name: Install dependencies
+        run: sudo apt-get install -y libssl-dev musl-tools
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
