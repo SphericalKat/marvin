@@ -4,6 +4,7 @@ use lazy_static::lazy_static;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use teloxide::{
     adaptors::DefaultParseMode,
+    dispatching2::UpdateFilterExt,
     prelude2::*,
     types::{ChatAction, ParseMode},
     utils::command::BotCommand,
@@ -69,66 +70,77 @@ async fn main() -> anyhow::Result<()> {
     run().await
 }
 
-async fn handler(bot: Bot, message: Message, command: Command) -> anyhow::Result<()> {
+async fn save_details(bot: &Bot, message: &Message) -> anyhow::Result<()> {
     // opportunistically save user/chat details to db
     tokio::try_join!(
         save_user_handler(&bot, &message, &*POOL),
         save_chat_handler(&bot, &message, &*POOL)
     )?;
 
+    Ok(())
+}
+
+async fn answer(bot: Bot, message: Message) -> anyhow::Result<()> {
     // check if update contains any text
-    if message.text().is_none() {
+    let text = message.text();
+    if text.is_none() {
         return Ok(());
     }
 
-    match command {
-        Command::Help => {
-            bot.send_chat_action(message.chat.id, ChatAction::Typing)
-                .await?;
-            bot.send_message(message.chat.id, Command::descriptions())
-                .await?;
-        }
-        Command::Id => {
-            misc::handle_id(&bot, &message, &*POOL).await?;
-        }
-        Command::Ban => {
-            banning::ban(&bot, &message, false, &*POOL).await?;
-        }
-        Command::Tban => {
-            banning::ban(&bot, &message, true, &*POOL).await?;
-        }
-        Command::Kick => {
-            banning::kick(&bot, &message, &*POOL).await?;
-        }
-        Command::Kickme => {
-            banning::kickme(&bot, &message).await?;
-        }
-        Command::Unban => {
-            banning::unban(&bot, &message, &*POOL).await?;
-        }
-        Command::Mute => {
-            muting::mute(&bot, &message, false, &*POOL).await?;
-        }
-        Command::Tmute => {
-            muting::mute(&bot, &message, true, &*POOL).await?;
-        }
-        Command::Unmute => {
-            muting::unmute(&bot, &message, &*POOL).await?;
-        }
-        Command::Promote => {
-            admin::promote(&bot, &message, &*POOL).await?;
-        }
-        Command::Demote => {
-            admin::demote(&bot, &message, &*POOL).await?;
-        }
-        Command::Pin(mode) => {
-            admin::pin(&bot, &message, mode).await?;
-        }
-        Command::Invitelink => {
-            admin::invite(&bot, &message).await?;
-        }
-        Command::Save => {
-            filters::save_note(&bot, &message, &*POOL).await?;
+    let cmd = Command::parse(text.unwrap(), "rust_tgbot").ok();
+
+		save_details(&bot, &message).await?;
+
+    if cmd.is_some() {
+        match cmd.unwrap() {
+            Command::Help => {
+                bot.send_chat_action(message.chat.id, ChatAction::Typing)
+                    .await?;
+                bot.send_message(message.chat.id, Command::descriptions())
+                    .await?;
+            }
+            Command::Id => {
+                misc::handle_id(&bot, &message, &*POOL).await?;
+            }
+            Command::Ban => {
+                banning::ban(&bot, &message, false, &*POOL).await?;
+            }
+            Command::Tban => {
+                banning::ban(&bot, &message, true, &*POOL).await?;
+            }
+            Command::Kick => {
+                banning::kick(&bot, &message, &*POOL).await?;
+            }
+            Command::Kickme => {
+                banning::kickme(&bot, &message).await?;
+            }
+            Command::Unban => {
+                banning::unban(&bot, &message, &*POOL).await?;
+            }
+            Command::Mute => {
+                muting::mute(&bot, &message, false, &*POOL).await?;
+            }
+            Command::Tmute => {
+                muting::mute(&bot, &message, true, &*POOL).await?;
+            }
+            Command::Unmute => {
+                muting::unmute(&bot, &message, &*POOL).await?;
+            }
+            Command::Promote => {
+                admin::promote(&bot, &message, &*POOL).await?;
+            }
+            Command::Demote => {
+                admin::demote(&bot, &message, &*POOL).await?;
+            }
+            Command::Pin(mode) => {
+                admin::pin(&bot, &message, mode).await?;
+            }
+            Command::Invitelink => {
+                admin::invite(&bot, &message).await?;
+            }
+            Command::Save => {
+                filters::save_note(&bot, &message, &*POOL).await?;
+            }
         }
     }
 
@@ -146,7 +158,18 @@ async fn run() -> anyhow::Result<()> {
         .parse_mode(ParseMode::Html)
         .auto_send();
 
-    teloxide::repls2::commands_repl(bot, handler, Command::ty()).await;
+    let handler = dptree::entry().branch(
+        Update::filter_message()
+            .endpoint(answer)
+    );
+
+    Dispatcher::builder(bot, handler)
+        .build()
+        .setup_ctrlc_handler()
+        .dispatch()
+        .await;
+
+    log::info!("Shutting down marvin... goodbye!");
 
     Ok(())
 }

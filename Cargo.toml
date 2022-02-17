@@ -1,6 +1,6 @@
 [package]
 name = "marvin"
-version = "0.1.0"
+version = "0.1.2"
 authors = ["SphericalKat <amolele@gmail.com>"]
 edition = "2018"
 description = "A group management bot for Telegram"
@@ -14,15 +14,15 @@ readme = "README.md"
 teloxide = { version = "0.7.0", features = ["macros", "auto-send", "rustls", "dispatching2", "cache-me"] }
 log = "0.4.14"
 pretty_env_logger = "0.4.0"
-tokio = { version = "1.5.0", features = ["rt-multi-thread", "macros", "rt"] }
+tokio = { version = "1.17.0", features = ["rt-multi-thread", "macros", "rt"] }
 dotenv = "0.15.0"
-anyhow = "1.0.40"
-sqlx = { version = "0.5.2", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "offline"] }
+anyhow = "1.0.53"
+sqlx = { version = "0.5.10", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "offline"] }
 lazy_static = "1.4.0"
 chrono = "0.4.19"
 
 [build-dependencies]
-cargo-emit = "0.1.1"
+cargo-emit = "0.2.1"
 
 [profile.release]
 opt-level = 3
